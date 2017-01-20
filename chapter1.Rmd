@@ -1,4 +1,12 @@
 
 # About the project
 
-*Write a short description about the course and add a link to your github repository here. This is an R markdown (.Rmd) file so you can use R markdown syntax. See the 'Useful links' page in the mooc area (chapter 1) for instructions.*
+IODS stands for _Introduction to Open Data Science_ - a MOOC platform course aiming to teach how to use open software tools and to analyse (openly available) data sets.
+
+We will learn to use the following tools: **R**, **R Studio**, **R Markdown** and **GitHub** (including **GitHub Desktop**). Other resources inlude **DataCamp** and **Slack**.
+
+The topics discussed during the course are: *Regression and model validation*, *Logistic regression*, *Clustering and classification*, *Dimensionality reduction techniques*, and *Multivariate statistical modelling*.
+
+At the core of the course are the exercises: weekly **DataCamp** and **RStudio** exercises (including peer reviews) as well as a final assignment for which one of the topics of the course will be investigated in more detail. 
+
+Here is the link to [my GitHub repository](https://tvistur/IODS-project).
