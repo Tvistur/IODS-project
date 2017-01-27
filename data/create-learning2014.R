@@ -2,11 +2,11 @@
 # 27.1.2017
 # RStudio Exercise 2 / part 1: data wrangling
 
-WRANGLING
-# Read in learning2014 data 
+
+# import data 
 learning2014 <- read.table("http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-data.txt", sep="\t", header = TRUE)
 
-# Structure of the data
+# structure of the data
 str(learning2014) # 184 observations and 60 variables
 
 # Dimensions of the data
@@ -14,8 +14,8 @@ dim(learning2014) #184 rows and 60 columns
 
 library(dplyr)
 
-# Combine questions + select + create new column
-# DEEP
+# combine questions + select + create new column
+
 deep_questions <- c("D03", "D11", "D19", "D27", "D07", "D14", "D22", "D30")
 deep_columns <- select(learning2014, one_of(deep_questions))
 learning2014$deep <- rowMeans(deep_columns)
@@ -38,6 +38,12 @@ learning2014_new <- select(learning2014, one_of(keep_columns))
 # exclude observations where the exam points variable is zero
 learning2014_new <- filter(learning2014_new, Points > 0)
 dim(learning2014_new)
+
+# modify column names
+colnames(learning2014_new)
+colnames(learning2014_new)[2] <- "age"
+colnames(learning2014_new)[3] <- "attitude"
+colnames(learning2014_new)[7] <- "points"
 
 # save analysis dataset to the 'data' folder
 write.csv(learning2014_new, file = "learning2014.csv", row.names = F)
