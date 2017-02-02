@@ -33,7 +33,7 @@ learning2014 <- read.csv("/Users/susanhuotari/Documents/IODS K17/IODS-project/da
 ```
 
 
-### Overview of the data
+### Overview of the data 
 
 The dataset used in this analysis was prepared beforehand. Originally, it consisted of 60 different variables and a total of 183 observations. Several subgroups of variables were interrelated and they were combined into single variables by calculating the mean value of each row for each subgroup. Then, observations where exam points were zero were excluded. 
 
