@@ -1,13 +1,158 @@
 # Regression analysis
 
-*Describe the work you have done this week and summarize your learning.*
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using  
-
-
-```{r import data}
-learning2014_data <- read.csv("/Users/susanhuotari/Documents/IODS K17/IODS-project/data/learning2014.csv")
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(include= TRUE,
+  tidy = FALSE,     
+  size = "small",   
+  out.width = "70%",
+  fig.align = "center",
+  fig.width = 10,
+  fig.asp = 0.618,  
+  fig.show = "hold", 
+  fig.path = "../figures/document/",
+  cache.path = "../cache/document/",
+  cache = TRUE,
+  par = TRUE,
+  collapse = TRUE,
+  echo = FALSE,
+  message = FALSE, 
+  warning = FALSE
+)
+options(digits = 3)
+options(table_counter = TRUE)
 ```
 
+
+```{r preliminaries}
+library(GGally)
+library(ggplot2)
+library(dplyr)
+
+learning2014 <- read.csv("/Users/susanhuotari/Documents/IODS K17/IODS-project/data/learning2014.csv")
+```
+
+
+### Overview of the data
+
+The dataset used in this analysis was prepared beforehand. Originally, it consisted of 60 different variables and a total of 183 observations. Several subgroups of variables were interrelated and they were combined into single variables by calculating the mean value of each row for each subgroup. Then, observations where exam points were zero were excluded. 
+
+```{r data structure}
+str(learning2014)
+```
+
+The data deals with different aspects of learning statistics and their exam points. Variables 'deep', 'stra' and 'surf' are combined variables which were mentioned earlier, and they consist of questions related to the students' learning obejctives: deep learning, strategic learning and surface learning. Variable 'attitude' represents the student's global attitude towards statistics. Variable 'gender' includes two values: male ('1') and female ('2'), and variable 'age' is recorded as the students' numerical age in years.
+
+```{r data dimensions}
+dim(learning2014)
+```
+
+Thus, the final dataset consists of seven variables and 166 observations. The following picture provides a visual overview of the data. It shows the variables in more detail, as well as the relationships between different variables, including their correlation coefficients.
+
+```{r graphical overview }
+ggpairs(learning2014, mapping = aes(col = gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
+```
+
+Let us begin with 'gender'. As can be seen below, there are nearly twice as many women than there are men. 
+```{r summary gender}
+summary(learning2014$gender)
+```
+
+Here are some summaries of the gender variable as a whole,
+
+```{r summary age}
+summary(learning2014$age)
+```
+
+as well as for the subgroups separately (first male students, then female students).
+
+```{r gender subgroups}
+male <- filter(learning2014, gender == "M")
+female <- filter(learning2014, gender == "F")
+
+summary(male$age)
+summary(female$age)
+```
+
+
+The overall ages range from late teens to mid-fifties. Both subgroups are rather similar. 50% of the students in both gender groups are in their twenties  and female students are on average younger than male students (male: 21-29 / mean 26.8, female: 20-26 / mean 24.9). Within this 50%, the median values are located closer to the younger end (male: 24, female: 22). There are also many outliers in the older end of both subgroups.
+
+It is perhaps not surprising, that male students' attitude towards statistics is slightly more positive, but here too, the ranges are wide and there are exceptions. 
+
+```{r attitude}
+summary(male$attitude)
+summary(female$attitude)
+```
+
+The central 50% of observations for women falls between 25.0 and 35.8, where as for men it is 31.0-39.0. Although the male group appears more uniform, there are outliers in this subgroup.
+
+Both male and female students are in favour of deep learning. Male student's exam points are somewhat higher, but female students tend to be a bit more consistent in their results as the box are is more narrow - and keeping in mind that there are twice as many students in this subgroup.
+
+The strongest positive correlation (0.437) can be found between attitude and points, and it is stronger for men (0.451) than women (0.422), which is also easy to see in the kernel density graphs. Attitude also has a positive average correlation with age (0.0222) - for women (0.000756), attitudes towards statistics become very slightly more positive as they grow older, but the opposite holds for men (-0.0414). 
+
+Both deep learning and strategic learning have a positive correlation with age and surface learning have a negative one. As one gets older, one takes studying more seriously while being more selective in the process. Unfortunaley, and somewhat surprisingly, age has a slightly negative correlation with points.
+
+
+### Regression model
+
+The next step is to try and fit a regression model, i.e. to try to explain the behaviour of the dependent variable (y) - in this case exam points. Explanatory variables were selected based on the findings in the previous section and the regression model can be stated as **points ~ attitude + stra + age**. Let us look at a summary of this model:
+
+```{r regression model 3 variables}
+model1 <- lm(points ~ attitude + stra + age, data = learning2014)
+summary(model1)
+```
+
+The summary  reveals that attitude is in fact a valid predictor for students' success in their exams. The hypothesis behind testing of the model is that beta equals zero. Here, the estimated value of beta for attitude is 0.3481 with a standard error of 0.0562. This means that for a one unit increase in attitude, the exam points are expected to increase by 0.3481. The *p*-value of *t*-test is very low (4.7e-09) which means that the test result (the rejection of null hypothesis: beta=0) is highly significant.
+
+As for strategic learning and age, their *p* values are furher away from zero and thus significant only at a signifance level of 0.1. The beta value of stra is higher than that of age. As age has the highest *p* value, I will remove it from the model in order to see how it affects the model. Here is a summary of the resulting model lm(y ~ x1 + x2) where attitude and strategic learning are used as explanatory variables for exam points.
+
+```{r regression model 2 variables}
+model2 <- lm(points ~ attitude + stra, data = learning2014)
+summary(model2)
+```
+
+Now that age has been removed, the beta values of both attitude and strategic learning have somewhat decreased (attitude: 0.3481 > 0.3466, stra 1.0037 > 0.9137) while the standard errors remain next to unaltered (attitude: 0.0562 > 0.0565, stra 0.5343 > 0.5345). The *p* values have also changed a little but their interpretations are the same as in the first model.
+
+Based on these test results for the individual variables, it looks as if the model now fits better, but there is still the model as a whole to consider. The *multiple R-squared* is a measure for the goodness of the fit of the model. If the value is 1 (maximum), the regression model fits the observations exactly and there are no residuals. Here, the *multiple R-squared* value is 0.205 which means that the model is able to predict exam points with an accuracy of 20.5 %. In the first model (with three explanatory variables) the *multiple R-squared* value was higher (0.218) which shows that the more explanatory variables the model has, the higher the *R-squared* value will be. The same applies for the *adjusted R-squared* which accounts for the loss of explanatory power in the model due to less significant variables, and therefore will be lower than the *multiple R-squared* value. Its value in the first model was 0.204 and, having removed one variable, its value now is 0.195. 
+
+Although the *R-squared* values for a model with two explanatory variables will be lower than for a model with three variables, they are very similar and in both cases the explanatory power of the models is roughly 20% which indicates that the variables in this dataset alone do not explain how well a student does or does not do in their exam. Should I venture a guess, I would say that the hours spent studying have a more decisive impact on the results. 
+
+Also, the *p* values of the *F test* (focuses on the entire model instead of individual variables) - in both cases the *p* value is extremely small. The critical levels of *F* with (3, 162) / (2, 163) degrees of freedom 3.78 / 4.61 at the 1 percent significance level, so *F statistics* of 15.1 / 21 indicate significant degrees of explanation in both models.
+
+
+### Diagnostics
+
+In the previous section, a regression model was fitted and investigated as to how well it fitted the observations. The purpose of this section is to look at the model from the point-of-view of residuals which reveal the downfalls of the model. They turn our attention to what was left over after the model was fitted and could reveal patterns which affect the fitted model. Here, I have chosen to investigate the latter model: **points ~ attitude + stra**.
+
+#### Residuals vs Fitted values
+
+Let us begin by looking at residuals versus fitted values which will show if residuals have non-linear patterns, i.e. if the variance of residuals is not constant.
+
+```{r Residuals vs Fitted values}
+plot(model2, which = 1)
+```
+
+The residuals are rather nicely spread around the horizontal line and there are no distinct patterns. There are some observations (35, 56, 145) which lie longer away from the line and would therefore be worth investigating closer, but other than those, there do not appear to be any major issues with the model.
+
+#### Normal QQ-plot
+
+Errors (residuals) in the regression model are assumed to be normally distributed, and the QQ-plot shows if this is the case for the fitted model.
+
+```{r Normal QQ-plot}
+plot(model2, which = 2)
+```
+
+Again, the residuals do not fall exactly on the straight line, especially in the beginning and the end, In general the plot does not reveal any major concerns, although observations 35, 56 and 145 do stand out again.
+
+
+#### Residuals vs Leverage
+
+Finally, let us take a look at the residuals versus leverage. The following plot shows if there are influential observations, i.e. how much impact single observations have on the model.
+
+```{r Residuals vs Leverage}
+plot(model2, which = 5)
+```
+
+In this plot, we are not looking for patterns, but rather for outlying values at the upper or lower right corners as these would the ones that have influence on the regression model. As we can see, there are not any in this plot. Observations 35, 71 and 145 are marked but as they lie within Cook's distance lines (which actually lie outside the plot area), they are not influential and the model appears to have a reasonably good fit.
+
+However, the same numbered outliers appeared in all of these plots. The next step would be to take a closer look at them. They might have significance, or be just errors in the data.
