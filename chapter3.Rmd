@@ -218,13 +218,11 @@ So, the lower the penalty the better (no model will ever be completely accurate)
 Continuing with the modified model, I will next perform a 10-fold cross-validation in order to test its actual predictive power.
 
 ```{r 10-fold cross-validation}
-loss_func(alc$high_use, alc$prediction)
-
 cv <- cv.glm(data = alc, cost = loss_func, glmfit = model_new, K = 10)
 cv$delta[1]
 ```
 
-Compared to the model used in DataCamp, it appears that my model performs better since 0.246 < 0.262. Both models have three explanatory variables, but only they have only one in common: 'absences'. The difference in performance can only be explained by differences in the models. The DataCamp model considers academic underachievement ('failures') and gender ('sex') whereas I decided not to include academic performance due its dependence on other factors (e.g. intelligence) and instead investigated the influence of peer pressure ('goout') and parental involvement ('famrel'). It would appear that my line of reasoning has directed me in the right direction.
+Compared to the model used in DataCamp, it appears that my model performs better  (< 0.262). Both models have three explanatory variables, but only they have only one in common: 'absences'. The difference in performance can only be explained by differences in the models. The DataCamp model considers academic underachievement ('failures') and gender ('sex') whereas I decided not to include academic performance due its dependence on other factors (e.g. intelligence) and instead investigated the influence of peer pressure ('goout') and parental involvement ('famrel'). It would appear that my line of reasoning has directed me in the right direction.
 
    
 #### Exploring performance (**)
@@ -242,7 +240,7 @@ cv_1 <- cv.glm(data = alc, cost = loss_func, glmfit = model1, K = 10)
 cv_1$delta[1]
 ```
 
-The error (0.267) is higher than in any of the earlier models which is as expected - some variables are better predictors than others. 
+The error is now higher than in any of the earlier models but this was expected - some variables are better predictors than others. 
 
 ```{r model1 summary, include=FALSE}
 summary(model1)
@@ -254,13 +252,11 @@ The summary of this model revealed that there are more not significant variables
 
 model2 <- glm(high_use ~ address + reason + studytime + paid + freetime + health + goout + famrel + absences, data = alc, family = "binomial")
 
-loss_func(alc$high_use, alc$prediction)
-
 cv_2 <- cv.glm(data = alc, cost = loss_func, glmfit = model2, K = 10)
 cv_2$delta[1]
 ```
 
-As we can see, there is vast improvement: loss is now down to 0.241 which is the best result yet. But why stop here? There are still nine variables left so surely not all of them are valuable for the model.
+As we can see, there is vast improvement and this model has given us the best result yet. There are still nine variables left so surely not all of them are valuable for the model.
 
 ```{r model2 summary, include=FALSE}
 summary(model2)
@@ -272,36 +268,24 @@ There are actually several which can be dropped: 'reason' (although one value is
 
 model3 <- glm(high_use ~ address + studytime + goout + famrel + absences, data = alc, family = "binomial")
 
-loss_func(alc$high_use, alc$prediction)
-
 cv_3 <- cv.glm(data = alc, cost = loss_func, glmfit = model3, K = 10)
 cv_3$delta[1]
 ```
 
-xxx
+Again, the model improved, but why stop here? 
 
 ```{r model3 summary, include=FALSE}
 summary(model3)
 ```
 
+I will remove yet another variable ('address') which, although it is significant at 0.05, is the least significant. Now we are left with four variables: 'studytime', 'goout', famrel' and 'absences'. Let us see what happens.
 
 ```{r model4 -address}
 
 model4 <- glm(high_use ~  studytime + goout + famrel + absences, data = alc, family = "binomial")
 
-loss_func(alc$high_use, alc$prediction)
-
 cv_4 <- cv.glm(data = alc, cost = loss_func, glmfit = model4, K = 10)
 cv_4$delta[1]
 ```
 
-
-```{r model5 -famrel}
-
-model3 <- glm(high_use ~ address + studytime + goout + absences, data = alc, family = "binomial")
-
-loss_func(alc$high_use, alc$prediction)
-
-cv_5 <- cv.glm(data = alc, cost = loss_func, glmfit = model3, K = 10)
-cv_5$delta[1]
-```
+As it turns out, the result is worse. Thus, the previous model was the best one. I am happy to note that it included all of the variables from my modified model ('goout', 'famrel', 'absences'). On the other hand, my hypothesis about time spent studying not being a good measure was worng, and I had not considered the effect of urban versus rural ('address') living at all which, of course, does determine one's mobility and thus social environment.
