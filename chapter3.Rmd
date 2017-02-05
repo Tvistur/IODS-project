@@ -1,0 +1,307 @@
+# Logistic regression
+
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(include= TRUE,
+  tidy = FALSE,     
+  size = "small",   
+  out.width = "70%",
+  fig.align = "center",
+  fig.width = 10,
+  fig.asp = 0.618,  
+  fig.show = "hold", 
+  fig.path = "../figures/document/",
+  cache.path = "../cache/document/",
+  cache = TRUE,
+  par = TRUE,
+  collapse = TRUE,
+  echo = FALSE,
+  message = FALSE, 
+  warning = FALSE
+)
+options(digits = 3)
+options(table_counter = TRUE)
+```
+
+
+```{r preliminaries}
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(GGally)
+library(boot)
+```
+
+
+```{r import data}
+alc <- read.csv("data/alc.csv")
+```
+
+
+### Overview of the data 
+
+The dataset used in this chapter contains combined information about the alcohol consumption of students of both maths and portugese (original datasets are available at the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION).
+
+The combined dataset consists of 35 variables and 382 observations.
+```{r dimensions}
+dim(alc)
+```
+
+In addition to alcohol consumption, the data provides a variety of backround information for each student.
+
+```{r data variables}
+colnames(alc)
+```
+
+The information provided by the variables can be summarised as follows: 
+
+* personal
+* family, finance
+* allocation of time
+* social connections
+* attendance and academic success, and 
+* alcohol consumption. 
+
+The original variables were complemented with two new variables:  
+
+* "alc_use" is the *average* of alcohol consumption during workdays ("Dalc") and weekends ("Walc"), and  
+* "high_use" divides students into two groups based on whether or not their average alcohol consumption ("alc_use") is high or low.
+
+
+### Selecting variables
+
+In order to explain what causes for the level of alcohol consumption (high/low), we need to consider the other variables and how they might be related to this issue.
+
+I expect that what we are dealing with is a group of young adults beginning to experiment with alcohol. I believe that in this age, especially in the younger end, the key factors behind alcohol use are peer pressure and amount of parental supervision. But it must also be kept in mind that the situation of a 15-year old student can be very different from that of a 22-year-old student. For this reason, we must factor in other related variables which may perhaps be the causes behind the level of alcohol consumption but correlate with it, such as academic behaviour. Time spent studying and grades do not appear as worthy factors, since they depend heavily on the student's intellengence and to a lesser extent on their alcohol consumption. On the other hand, time spent partying and drinking *does* result in fatigue (to say the least) and could therefore be reflected in attendance.
+
+Based this reasoning, I have selected the following four variables:
+
+Factor |  Variable | Description of variable
+------ | --------- | -------------
+age | age | student's age
+peer pressure | goout | going out with friends
+parental supervision | famrel | quality of family relations
+academic success | absences | number of school absences
+
+Let us next explore the selected variables beginning with age.
+
+```{r age - boxplot}
+ggplot(alc, aes(x = high_use, y = age)) +
+  geom_boxplot(aes(col = sex)) +
+  coord_flip() +
+  ggtitle("Age by alcohol consumption and sex")
+```
+
+```{r age - correlation}
+summary(alc$age)
+cor(alc$high_use, alc$age, use = "everything", method = "pearson")
+```
+
+The age range is from 15 to 22 and the Pearson correlation value between age and high_use is 0.113. Older students tend to use more alcohol (high_use = TRUE) than younger ones. It is interesting to note that for high consumption the median age is lower for girls than for boys. In fact, 50% girls consuming a lot of alcohol are 16-17 years old, whereas the boys' range is slightly wider. Both sexes start experimenting around the same age, but girls "peak" earlier, so to speak, and contain that level for a longer time.
+
+Next we have time spent with friends, "goout", where value 1 equals very low and 5 equals very high.
+
+```{r goout - boxplot}
+ggplot(alc, aes(x = high_use, y = goout)) +
+  geom_boxplot(aes(col = sex)) +
+  coord_flip() +
+  ggtitle("Going out with friends by alcohol consumption and sex")
+```
+
+```{r goout - correlation}
+summary(alc$goout)
+cor(alc$high_use, alc$goout, use = "everything", method = "pearson")
+```
+
+The figure above shows a clear difference between the consumption levels. Those in the high consumption group go out more often than those in the low consumption group, suggesting that peer pressure does indeed have an effect on alcohol consumption. Comparison between the two consumption levels reveals an interesting gender difference as well. Girls in the low consumption group go out more than boys, and even as much as in the high consumption group. For boys it either or: those boys who do not go out a lot do not drink much, and vice verca. Thus, girls spend a lot of time with their friends, but alcohol consumption is not as important a factor in building their social relations as it is for adolescent boys. Also, the correlation is now 0.354 which is higher than for age.
+
+Next, let us zoom out a bit and look at the quality of family relationships where the values of the variable "famrel" are like those of our previous variable (1 = very bad, ..., 5 = excellent).
+
+```{r famrel - boxplot}
+ggplot(alc, aes(x = high_use, y = famrel)) +
+  geom_boxplot(aes(col = sex)) +
+  coord_flip() +
+  ggtitle("Quality of family relationships by alcohol consumption and sex")
+```
+
+```{r famre - correlation}
+summary(alc$famrel)
+cor(alc$high_use, alc$famrel, use = "everything", method = "pearson")
+```
+
+With this variable, there is a negative correlation of -0.113 meaning that the better the relationships within the family are, the less likely it is that the offspring will consume high levels of alcohol. But the difference is not very sharp, as the figure reveals. The majority of students in both consumption levels appear to have relative good relatinships with their families and although low consumptuion corresponds a bit better with very good family relationships, the medians are surprisingly the same (4) for both levels.
+
+Absences, on the other hand, are not quite as clearly differentiated as I had anticipated.
+
+```{r absences - boxplot}
+ggplot(alc, aes(x = high_use, y = absences)) +
+  geom_boxplot(aes(col = sex)) +
+  coord_flip() +
+  ggtitle("Final grade by alcohol consumption and sex")
+```
+
+```{r absences - correlation}
+cor(alc$high_use, alc$absences, use = "everything", method = "pearson")
+```
+
+The correlation value is 0.223, and the figure shows that absences are a little more frequent in the high consumption group. But the medians are almost identical, and girls have more outliers in both consumption groups. Any meaningful differences can again be seen looking at the boys: low consumption corresponds to very few absences, less than for girls, whereas high consumption corresponds to some absences more than for girls. 
+
+
+### Logistic regression model
+
+Now I have fitted a logistic regression model between the variables discussed in the previous section (explanatory variables) and the  level of alcohol consumption which is, as we have seen, is a binary variable (high / low). Below is a summary of the fitted model.
+
+```{r logistic regression model}
+model <- glm(high_use ~ age + goout + famrel + absences, data = alc, family = "binomial")
+summary(model)
+```
+
+Looking at the summary, we can see that apart from age, the selected explanatory variables are significant. Time spent with friends and absences from school are the most significant ones with test scroser very close to zero. Although age as itself does not score very high in this model, the model as a whole is significant at a 0.01 significanse level.
+
+
+#### Odds ratio and confidence intervals
+
+Let us next look at the odds ratio (OR) and confidence intervals (CI) of the fitted model.
+
+```{r OR and CI}
+OR <- coef(model) %>% exp
+CI <- confint(model) %>% exp
+cbind(OR, CI)
+```
+
+Time spent with friends ("goout") is twice as likely (OD = 2.1345) to result in a high level of alcohol consumption, as opposed to a low level of consumption. This complies well with the model's test results above. The odds ratios for absences and family relationships are also similar to the test results. Interestingly, age was not as significant a variable as the other variables, but here the odds ratio for age (1.1015) is actually higher than for absences (1.0747). However, the 95% confidence interval reveals that age is *not* statistically significant at the 0.05 level (because the interval contains 1.0), and the other variables are significant.  
+  
+#### Prediction and penalty
+
+```{r new model, include=FALSE}
+model_new <- glm(high_use ~ goout + famrel + absences, data = alc, family = "binomial")
+
+summary(model_new)
+```
+
+In order to explore the predictive power of my model to its full extent, I have modified it by including only those variables which were found to be statistically significant, i.e. I have dropped the age variable. The logistic regression equation is now:  
+$y = -2.3882 + 0.7707(goout) - 0.3499(famrel) + 0.0745(absences)$
+
+Based on this modified model, you will find below a 2x2 cross tabulation of the predictions versus actual values of the level of alcohol consumption (TRUE being 'high' and FALSE being 'low'). The prediction treshold has been set to 0.5.
+
+```{r high_use: prediction vs actual, table}
+probabilities <-predict(model_new, type = "response")
+
+alc <- mutate(alc, probability = probabilities)
+
+alc <-  mutate(alc, prediction = probability > 0.5)
+
+table(high_use = alc$high_use, prediction = alc$prediction) %>% 
+  prop.table() %>%
+  addmargins()
+```
+
+The odds for a *high* level of alcohol consumption are 82%, but only about 64% of those predictions will be **correct**. Or, to put it another way, the odds for a *low* level of alcohol consumption are 18%, but only about 12% of those predictions will be correct. 
+
+We have now considered the model from the point of view of correctly predicted values, but we still need to find a measure for the accuracy of the model as a whole. This can be done by calculating the mean of **incorrect** predictions (penalty).
+
+```{r training error}
+
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+loss_func(class = alc$high_use, prob = alc$probability)
+```
+
+So, the lower the penalty the better (no model will ever be completely accurate). The value here (0.243) seems reasonably low and in any effect it is lower than the value attained from the model used in the DataCamp exercises (0.256). 
+
+
+#### Cross-validation (*)
+
+Continuing with the modified model, I will next perform a 10-fold cross-validation in order to test its actual predictive power.
+
+```{r 10-fold cross-validation}
+loss_func(alc$high_use, alc$prediction)
+
+cv <- cv.glm(data = alc, cost = loss_func, glmfit = model_new, K = 10)
+cv$delta[1]
+```
+
+Compared to the model used in DataCamp, it appears that my model performs better since 0.246 < 0.262. Both models have three explanatory variables, but only they have only one in common: 'absences'. The difference in performance can only be explained by differences in the models. The DataCamp model considers academic underachievement ('failures') and gender ('sex') whereas I decided not to include academic performance due its dependence on other factors (e.g. intelligence) and instead investigated the influence of peer pressure ('goout') and parental involvement ('famrel'). It would appear that my line of reasoning has directed me in the right direction.
+
+   
+#### Exploring performance (**)
+
+The question still remains: is my model, although modified, the best possible one. Since only four variables were originally chosen, there are still over 30 variables which have not been put to the test. In this section I will approach modeling from another perspective: by favouring statistical measures and iterations over personal reasoninig.  
+*N.B. I will use K-fold cross-validation and display their results, but summaries will not be displayed for the sake of legibility.*
+
+Let us begin with a wide variety of possibly releant variables.
+
+```{r model1}
+
+model1 <- glm(high_use ~ address + school + famsize + Pstatus + reason + internet + traveltime + studytime + failures + schoolsup + famsup + paid + activities + higher + romantic + freetime + health + G1 + G2 + G3+  age + goout + famrel + absences, data = alc, family = "binomial")
+
+cv_1 <- cv.glm(data = alc, cost = loss_func, glmfit = model1, K = 10)
+cv_1$delta[1]
+```
+
+The error (0.267) is higher than in any of the earlier models which is as expected - some variables are better predictors than others. 
+
+```{r model1 summary, include=FALSE}
+summary(model1)
+```
+
+The summary of this model revealed that there are more not significant variables than there are significant ones. I will now drop all those variables which are not significant *for any values* at 0.05.
+
+```{r model2}
+
+model2 <- glm(high_use ~ address + reason + studytime + paid + freetime + health + goout + famrel + absences, data = alc, family = "binomial")
+
+loss_func(alc$high_use, alc$prediction)
+
+cv_2 <- cv.glm(data = alc, cost = loss_func, glmfit = model2, K = 10)
+cv_2$delta[1]
+```
+
+As we can see, there is vast improvement: loss is now down to 0.241 which is the best result yet. But why stop here? There are still nine variables left so surely not all of them are valuable for the model.
+
+```{r model2 summary, include=FALSE}
+summary(model2)
+```
+
+There are actually several which can be dropped: 'reason' (although one value is somewhat significant, the others really are not), 'paid', 'freetime' and 'health'. This leaves us with a total of five remaining variables.
+
+```{r model3}
+
+model3 <- glm(high_use ~ address + studytime + goout + famrel + absences, data = alc, family = "binomial")
+
+loss_func(alc$high_use, alc$prediction)
+
+cv_3 <- cv.glm(data = alc, cost = loss_func, glmfit = model3, K = 10)
+cv_3$delta[1]
+```
+
+xxx
+
+```{r model3 summary, include=FALSE}
+summary(model3)
+```
+
+
+```{r model4 -address}
+
+model4 <- glm(high_use ~  studytime + goout + famrel + absences, data = alc, family = "binomial")
+
+loss_func(alc$high_use, alc$prediction)
+
+cv_4 <- cv.glm(data = alc, cost = loss_func, glmfit = model4, K = 10)
+cv_4$delta[1]
+```
+
+
+```{r model5 -famrel}
+
+model3 <- glm(high_use ~ address + studytime + goout + absences, data = alc, family = "binomial")
+
+loss_func(alc$high_use, alc$prediction)
+
+cv_5 <- cv.glm(data = alc, cost = loss_func, glmfit = model3, K = 10)
+cv_5$delta[1]
+```
