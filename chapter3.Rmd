@@ -40,14 +40,14 @@ alc <- read.csv("data/alc.csv")
 
 ### Overview of the data 
 
-The dataset used in this chapter contains combined information about the alcohol consumption of students of both maths and portugese (original datasets are available at the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION).
+The dataset used in this chapter contains combined information about the alcohol consumption of students of both maths and Portugese. The original datasets are available at the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION).
 
 The combined dataset consists of 35 variables and 382 observations.
 ```{r dimensions}
 dim(alc)
 ```
 
-In addition to alcohol consumption, the data provides a variety of backround information for each student.
+In addition to alcohol consumption, the data provides a variety of background information for each student.
 
 ```{r data variables}
 colnames(alc)
@@ -72,7 +72,7 @@ The original variables were complemented with two new variables:
 
 In order to explain what causes for the level of alcohol consumption (high/low), we need to consider the other variables and how they might be related to this issue.
 
-I expect that what we are dealing with is a group of young adults beginning to experiment with alcohol. I believe that in this age, especially in the younger end, the key factors behind alcohol use are peer pressure and amount of parental supervision. But it must also be kept in mind that the situation of a 15-year old student can be very different from that of a 22-year-old student. For this reason, we must factor in other related variables which may perhaps be the causes behind the level of alcohol consumption but correlate with it, such as academic behaviour. Time spent studying and grades do not appear as worthy factors, since they depend heavily on the student's intellengence and to a lesser extent on their alcohol consumption. On the other hand, time spent partying and drinking *does* result in fatigue (to say the least) and could therefore be reflected in attendance.
+I expect that what we are dealing with is a group of young adults beginning to experiment with alcohol. I believe that in this age, especially in the younger end, the key factors behind alcohol use are peer pressure and amount of parental supervision. But it must also be kept in mind that the situation of a 15-year old student can be very different from that of a 22-year-old student. For this reason, we must factor in other related variables which may perhaps be the causes behind the level of alcohol consumption but correlate with it, such as academic behaviour. Time spent studying and grades do not appear as worthy factors, since they depend heavily on the student's intelligence and to a lesser extent on their alcohol consumption. On the other hand, time spent partying and drinking *does* result in fatigue (to say the least) and could therefore be reflected in attendance.
 
 Based this reasoning, I have selected the following four variables:
 
@@ -113,7 +113,7 @@ summary(alc$goout)
 cor(alc$high_use, alc$goout, use = "everything", method = "pearson")
 ```
 
-The figure above shows a clear difference between the consumption levels. Those in the high consumption group go out more often than those in the low consumption group, suggesting that peer pressure does indeed have an effect on alcohol consumption. Comparison between the two consumption levels reveals an interesting gender difference as well. Girls in the low consumption group go out more than boys, and even as much as in the high consumption group. For boys it either or: those boys who do not go out a lot do not drink much, and vice verca. Thus, girls spend a lot of time with their friends, but alcohol consumption is not as important a factor in building their social relations as it is for adolescent boys. Also, the correlation is now 0.354 which is higher than for age.
+The figure above shows a clear difference between the consumption levels. Those in the high consumption group go out more often than those in the low consumption group, suggesting that peer pressure does indeed have an effect on alcohol consumption. Comparison between the two consumption levels reveals an interesting gender difference as well. Girls in the low consumption group go out more than boys, and even as much as in the high consumption group. For boys it either or: those boys who do not go out a lot do not drink much, and vice versa. Thus, girls spend a lot of time with their friends, but alcohol consumption is not as important a factor in building their social relations as it is for adolescent boys. Also, the correlation is now 0.354 which is higher than for age.
 
 Next, let us zoom out a bit and look at the quality of family relationships where the values of the variable "famrel" are like those of our previous variable (1 = very bad, ..., 5 = excellent).
 
@@ -129,7 +129,7 @@ summary(alc$famrel)
 cor(alc$high_use, alc$famrel, use = "everything", method = "pearson")
 ```
 
-With this variable, there is a negative correlation of -0.113 meaning that the better the relationships within the family are, the less likely it is that the offspring will consume high levels of alcohol. But the difference is not very sharp, as the figure reveals. The majority of students in both consumption levels appear to have relative good relatinships with their families and although low consumptuion corresponds a bit better with very good family relationships, the medians are surprisingly the same (4) for both levels.
+With this variable, there is a negative correlation of -0.113 meaning that the better the relationships within the family are, the less likely it is that the offspring will consume high levels of alcohol. But the difference is not very sharp, as the figure reveals. The majority of students in both consumption levels appear to have relative good relationships with their families and although low consumption corresponds a bit better with very good family relationships, the medians are surprisingly the same (4) for both levels.
 
 Absences, on the other hand, are not quite as clearly differentiated as I had anticipated.
 
@@ -156,7 +156,7 @@ model <- glm(high_use ~ age + goout + famrel + absences, data = alc, family = "b
 summary(model)
 ```
 
-Looking at the summary, we can see that apart from age, the selected explanatory variables are significant. Time spent with friends and absences from school are the most significant ones with test scroser very close to zero. Although age as itself does not score very high in this model, the model as a whole is significant at a 0.01 significanse level.
+Looking at the summary, we can see that apart from age, the selected explanatory variables are significant. Time spent with friends and absences from school are the most significant ones with test scores very close to zero. Although age as itself does not score very high in this model, the model as a whole is significant at a 0.01 significance level.
 
 
 #### Odds ratio and confidence intervals
@@ -182,7 +182,7 @@ summary(model_new)
 In order to explore the predictive power of my model to its full extent, I have modified it by including only those variables which were found to be statistically significant, i.e. I have dropped the age variable. The logistic regression equation is now:  
 $y = -2.3882 + 0.7707(goout) - 0.3499(famrel) + 0.0745(absences)$
 
-Based on this modified model, you will find below a 2x2 cross tabulation of the predictions versus actual values of the level of alcohol consumption (TRUE being 'high' and FALSE being 'low'). The prediction treshold has been set to 0.5.
+Based on this modified model, you will find below a 2x2 cross tabulation of the predictions versus actual values of the level of alcohol consumption (TRUE being 'high' and FALSE being 'low'). The prediction threshold has been set to 0.5.
 
 ```{r high_use: prediction vs actual, table}
 probabilities <-predict(model_new, type = "response")
@@ -222,12 +222,12 @@ cv <- cv.glm(data = alc, cost = loss_func, glmfit = model_new, K = 10)
 cv$delta[1]
 ```
 
-Compared to the model used in DataCamp, it appears that my model performs better  (< 0.262). Both models have three explanatory variables, but only they have only one in common: 'absences'. The difference in performance can only be explained by differences in the models. The DataCamp model considers academic underachievement ('failures') and gender ('sex') whereas I decided not to include academic performance due its dependence on other factors (e.g. intelligence) and instead investigated the influence of peer pressure ('goout') and parental involvement ('famrel'). It would appear that my line of reasoning has directed me in the right direction.
+Compared to the model used in DataCamp, it appears that my model performs better (< 0.262). Both models have three explanatory variables, but only they have only one in common: 'absences'. The difference in performance can only be explained by differences in the models. The DataCamp model considers academic underachievement ('failures') and gender ('sex') whereas I decided not to include academic performance due its dependence on other factors (e.g. intelligence) and instead investigated the influence of peer pressure ('goout') and parental involvement ('famrel'). It would appear that my line of reasoning has directed me in the right direction.
 
    
 #### Exploring performance (**)
 
-The question still remains: is my model, although modified, the best possible one. Since only four variables were originally chosen, there are still over 30 variables which have not been put to the test. In this section I will approach modeling from another perspective: by favouring statistical measures and iterations over personal reasoninig.  
+The question still remains: is my model, although modified, the best possible one. Since only four variables were originally chosen, there are still over 30 variables which have not been put to the test. In this section I will approach modeling from another perspective: by favouring statistical measures and iterations over personal reasoning.  
 *N.B. I will use K-fold cross-validation and display their results, but summaries will not be displayed for the sake of legibility.*
 
 Let us begin with a wide variety of possibly releant variables.
@@ -288,4 +288,4 @@ cv_4 <- cv.glm(data = alc, cost = loss_func, glmfit = model4, K = 10)
 cv_4$delta[1]
 ```
 
-As it turns out, the result is worse. Thus, the previous model was the best one. I am happy to note that it included all of the variables from my modified model ('goout', 'famrel', 'absences'). On the other hand, my hypothesis about time spent studying not being a good measure was worng, and I had not considered the effect of urban versus rural ('address') living at all which, of course, does determine one's mobility and thus social environment.
+As it turns out, the result is worse. Thus, the previous model was the best one. I am happy to note that it included all of the variables from my modified model ('goout', 'famrel', 'absences'). On the other hand, my hypothesis about time spent studying not being a good measure was wrong, and I had not considered the effect of urban versus rural ('address') living at all which, of course, does determine one's mobility and thus social environment.
