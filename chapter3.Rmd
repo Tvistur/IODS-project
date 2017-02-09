@@ -1,7 +1,7 @@
 # Logistic regression
 
 
-```{r setup, include=FALSE, echo=FALSE}
+```{r setup ch 3, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(include= TRUE,
   tidy = FALSE,     
   size = "small",   
@@ -24,7 +24,7 @@ options(table_counter = TRUE)
 ```
 
 
-```{r preliminaries}
+```{r preliminaries ch3}
 library(tidyr)
 library(ggplot2)
 library(dplyr)
@@ -33,7 +33,7 @@ library(boot)
 ```
 
 
-```{r import data}
+```{r import data ch 3}
 alc <- read.csv("data/alc.csv")
 ```
 
