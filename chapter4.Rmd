@@ -1,0 +1,38 @@
+
+
+
+```{r setup ch 4, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(include= TRUE,
+  tidy = FALSE,     
+  size = "small",   
+  out.width = "70%",
+  fig.align = "center",
+  fig.width = 10,
+  fig.asp = 0.618,  
+  fig.show = "hold", 
+  fig.path = "../figures/document/",
+  cache.path = "../cache/document/",
+  cache = TRUE,
+  par = TRUE,
+  collapse = TRUE,
+  echo = FALSE,
+  message = FALSE, 
+  warning = FALSE
+)
+options(digits = 3)
+options(table_counter = TRUE)
+```
+
+
+```{r preliminaries ch4}
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(GGally)
+library(boot)
+```
+
+
+```{r import data ch 4}
+XXX <- read.csv("data/XXX.csv")
+```
