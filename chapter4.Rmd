@@ -1,6 +1,5 @@
 # Clustering and classification
 
-
 ```{r setup ch 4, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(include= TRUE,
   tidy = FALSE,     
@@ -36,11 +35,11 @@ data("Boston")
 
 
 Clustering and classification are visual ways of exploring statistical data. 
-In clustering, the aim is to group a set of objects in such a way that objects in the same group, i.e. cluster, are more similar (in some sense or another) to each other than to those in other groups clusters.
-
+The aim of clustering is to find groups of data which are more similar (in some sense or another) to each other than to those in other groups.  
+  
 #### Overview of the data
 
-This week I am using a built-in dataset, namely the Boston dataset which contains housing information in the Boston Mass are. The data has been collected by the U.S Census Service and it is also available [online](http://lib.stat.cmu.edu/datasets/boston).
+This week I am using a built-in dataset, namely the Boston dataset which contains housing information in the Boston Mass area. The data has been collected by the U.S Census Service and it is also available [online](http://lib.stat.cmu.edu/datasets/boston).
 
 ```{r dimensions Boston, include=FALSE}
 dim(Boston)
@@ -71,8 +70,9 @@ black | 1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town
 lstat | % lower status of the population
 medv | median value of owner-occupied homes in $1000's
 
-Thus, the Boston dataset consists of a variety of variables: demographic, economic, and environmental factors as well as safety.  
-Let us next take a graphical tour of the data. In the figure below, each variable is plotted against the other variables.
+Thus, the Boston dataset consists of a variety of information: demographic, economic, and environmental factors as well as safety. I will not discuss the variables in more detail just now, but save it for later when we explore the standardized dataset - the comparison between the original and scaled variables will be more meaningful if the summaries are presented together. 
+
+So, let us next take a graphical tour of the data. In the figure below, each variable is plotted against the other variables.
 
 ```{r pairs}
 # plot matrix
@@ -81,11 +81,11 @@ pairs(Boston, col = "royalblue")
 
 Here we see some interesting distribution patterns, such as  
 * accumulation close to the edges and corners of the box - e.g. *age/lstat*  
-* diagonal shapes - e.g. *nox/dis*  
+* more curved shapes close to the lower left corner  - e.g. *nox/dis*  
 * compact round shapes close to one of the corners - e.g. *rad/tax*  
 * binary positionas in all pairs for variables  *chas* and *rad*.  
   
-Another way of approaching the relationships between variables is to look at their correlations. Below is a **correlation** matrix where ...
+Another way of approaching the relationships between variables is to look at their correlations. Below is a **correlogram** where, instead of numerical values, the correlations are presented as coloured spots. Red colour indicates a negative correlation and blue colour indicates a posititve correlation. The stronger the correlation, the bigger the spot.
 
 ```{r correlation matrix, include=FALSE}
 # calculate correlation matrix and round it
@@ -100,20 +100,19 @@ cor_matrix
 corrplot(cor_matrix, method = "circle", type = "upper", cl.pos = "b", tl.pos = "d", tl.cex = 0.6)
 ```
 
-DESCRIBE AND INTERPRET THE OUTPUTS (COMMENT ON DISTRIBUTIONS OF THE VARIABLES & RELATIONSHIPS BETWEEN THEM)
+Three pairs stand out as having a strong negative correlation: *indus/dis*, *nox/dis* and *lstat/medv*. It is interesting to note the connection between this and the previous graph. If we go back to the previous graph, we can see that these pairs are those which showed curved patterns.  
+As for positive correlations, there are many to choose from but one stands out from the rest: *rad/tax*. This was also identified above and it is the one with a compact round shape.
+  
+  
+### Standardization  
 
+The first step before attempting actual clustering is to standardize the dataset. This is because we need the variables to be comparable. Standardization is a simple operation in which the values of each variable are calculated using the following formula:  
+$scaled(x) = [x-mean(x)]/sd(x)$  
+i.e. the variable mean is substracted from the original value of the variable and this difference is the divided by the standard deviation of the variable.  
 
-
-
-
-*4 Standardization*
-standardize  dataset + summary:
 ```{r scale}
 # standardize variables
 boston_scaled <-  scale(Boston)
-
-summary(Boston)
-summary(boston_scaled)
 
 # check class of boston_scaled object
 class(boston_scaled) # matrix
@@ -121,32 +120,61 @@ class(boston_scaled) # matrix
 # change object to data frame
 boston_scaled <- as.data.frame(boston_scaled)
 ```
-HOW DID THE VARIABLES CHANGE?
 
-create categorical variable of crime rate (from scaled crime rate), quantiles as breakpoints:
-```{r new categorical variable crime}
-# summary of SCALED crime rate
+Now let us take a closer look at a selection of these scaled variables and compare them to the original, non-scaled, dataset (original values are shown first and then the scaled values). Here are summaries of *age*
+
+```{r summary age}
+summary(Boston$age)
+summary(boston_scaled$age)
+```
+
+*tax*
+
+```{r summary tax}
+summary(Boston$tax)
+summary(boston_scaled$tax)
+```
+
+and *black*
+
+```{r summary black}
+summary(Boston$black)
+summary(boston_scaled$black)
+```
+
+
+The standardization procedure has affected the variables considerably. To begin with, the range has been radically reduced: for *age* [2.9,100.0] -> [-2.333,1.116], for *tax* [187,711] -> [-1.313,1.796], and for *black* [0,397] -> [-3.90, 0.44]. What is most noteworthy, though, is the change in the mean values - in the scaled dataset, the mean value is 0.000 for all variables. The variables are not aligned and thus more easily comparable.   
+I will use this scaled dataset from this point onwards. There are still some minor adjustments to be made. In the analysis to come, I will use crime rate as the target variable, and in order to do so the continuous variable *crim* needs to be converted into a new, categorical variable *crime* (after which the original variable will be removed, because all the other variables will serve as the explanatory variables). The quantiles of the scaled variables *crim*
+
+```{r summary of scaled crime rate}
 summary(boston_scaled$crim)
+```
 
+```{r set beakpoint and create new variable, include = FALSE}
 # create quantile vector of 'crim' and print it
 bins <- quantile(boston_scaled$crim)
 bins
 
-# create categorical variable crime
+# create object crime
 crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, label = c("low", "med_low", "med_high", "high"))
-
-# look at the table of new variable
+```
+  
+will serve as the breakpoints of the new categorical variables *crime* and the table below shows its distribution between the categories:
+```{r summary of new variable}
 table(crime)
+```
 
-# remove original crim from dataset
+```{r remove orginal and add new, include=FALSE}
+## remove original crim from dataset
 boston_scaled <- dplyr::select(boston_scaled, -crim)
 
 # add new categorical variable to scaled data
 boston_scaled <- data.frame(boston_scaled, crime)
 ```
 
-*Division into train and test sets*
-divide dataset into train and test so that 80% of data belongs to train set:
+  
+Creating a model from your data is interesting by itself, but it falls short if there is nothing to test it on. Luckily, we can divide the dataset into training and test sets where the former is used for creating the model and the latter is used as "new" data for testing the model's prediction power. I will use 80% of my data for training and the remaining 20% for testing.
+
 ```{r divide into train and test sets}
 # create object n for number of rows in Boston dataset
 n <- nrow(boston_scaled)
@@ -161,8 +189,11 @@ train <- boston_scaled[ind,]
 test <-  boston_scaled[-ind,]
 ```
 
-*Linear discriminant analysis (LDA)*
-fit linear discriminant analysis to train set (categorical crime rate as target variable & all others as predictor variables) + draw LDA (bi)plot:
+  
+###Linear discriminant analysis
+
+Now that the data has been prepared and divided, we can fit the linear discriminant analysis (LDA) on the previously created training set. LDA is a dimension reduction method meaning that it finds a linear combination of the explanatory variables which characterizes or separates the different classes of the target variable. In this current case, the newly created *crime* is the target variable and all other variables are the explanatory, or predictor, variables. Here is **biplot** representation of the LDA.
+
 ```{r LDA}
 # fit LDA to train set
 lda.fit <- lda(data = train, crime ~.)
@@ -187,6 +218,11 @@ classes <- as.numeric(train$crime)
 plot(lda.fit, dimen = 2, col = classes, pch =classes)
 lda.arrows(lda.fit, myscale = 1)
 ```
+
+It appears that high crime rates (in blue) have a different association with the Boston housing situation than the other crime rates.
+
+
+
 
 save crime categories from the test set:
 ```{r}
