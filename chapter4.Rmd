@@ -45,13 +45,13 @@ This week I am using a built-in dataset, namely the Boston dataset which contain
 dim(Boston)
 ```
 
-The Boston dataset consists of just 506 observations and there are 14 variables. Let us take a closer look at what those variables are.
+The Boston dataset consists of just 506 observations and there are 14 variables. All of the variables are continuous. Let us take a closer look at what they are.
 
-```{r structure Boston}
+```{r structure Boston, include=FALSE}
 str(Boston)
 ```
 
-The variable names are not exactly self-explanatory. Because our analysis will again depend upon them, I will briefly explain what they are.
+The variable names are not exactly self-explanatory. Because our analysis will again depend upon them, I will briefly list them here with a short description.
 
 Variable | Description
 ---|------------------------------------------------
@@ -110,7 +110,7 @@ The first step before attempting actual clustering is to standardize the dataset
 $scaled(x) = [x-mean(x)]/sd(x)$  
 i.e. the variable mean is substracted from the original value of the variable and this difference is the divided by the standard deviation of the variable.  
 
-```{r scale}
+```{r scale, include=FALSE}
 # standardize variables
 boston_scaled <-  scale(Boston)
 
@@ -144,7 +144,7 @@ summary(boston_scaled$black)
 
 
 The standardization procedure has affected the variables considerably. To begin with, the range has been radically reduced: for *age* [2.9,100.0] -> [-2.333,1.116], for *tax* [187,711] -> [-1.313,1.796], and for *black* [0,397] -> [-3.90, 0.44]. What is most noteworthy, though, is the change in the mean values - in the scaled dataset, the mean value is 0.000 for all variables. The variables are not aligned and thus more easily comparable.   
-I will use this scaled dataset from this point onwards. There are still some minor adjustments to be made. In the analysis to come, I will use crime rate as the target variable, and in order to do so the continuous variable *crim* needs to be converted into a new, categorical variable *crime* (after which the original variable will be removed, because all the other variables will serve as the explanatory variables). The quantiles of the scaled variables *crim*
+I will use this scaled dataset from this point onwards. There are still some minor adjustments to be made. In the analysis to come, I will use crime rate as the target variable, and in order to do so the continuous variable *crim* needs to be converted into a new, categorical variable *crime* (after which the original variable will be removed, because all the other variables will serve as the explanatory variables). The quantiles of the scaled variable *crim*
 
 ```{r summary of scaled crime rate}
 summary(boston_scaled$crim)
@@ -160,6 +160,7 @@ crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, label = c
 ```
   
 will serve as the breakpoints of the new categorical variables *crime* and the table below shows its distribution between the categories:
+
 ```{r summary of new variable}
 table(crime)
 ```
@@ -172,7 +173,6 @@ boston_scaled <- dplyr::select(boston_scaled, -crim)
 boston_scaled <- data.frame(boston_scaled, crime)
 ```
 
-  
 Creating a model from your data is interesting by itself, but it falls short if there is nothing to test it on. Luckily, we can divide the dataset into training and test sets where the former is used for creating the model and the latter is used as "new" data for testing the model's prediction power. I will use 80% of my data for training and the remaining 20% for testing.
 
 ```{r divide into train and test sets}
@@ -194,7 +194,7 @@ test <-  boston_scaled[-ind,]
 
 Now that the data has been prepared and divided, we can fit the linear discriminant analysis (LDA) on the previously created training set. LDA is a dimension reduction method meaning that it finds a linear combination of the explanatory variables which characterizes or separates the different classes of the target variable. In this current case, the newly created *crime* is the target variable and all other variables are the explanatory, or predictor, variables. Here is **biplot** representation of the LDA.
 
-```{r LDA}
+```{r LDA, include=FALSE}
 # fit LDA to train set
 lda.fit <- lda(data = train, crime ~.)
 
@@ -213,38 +213,46 @@ lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0
 
 # target classes as numeric
 classes <- as.numeric(train$crime)
+```
 
-# plot results
+
+```{r LDA biplot}
 plot(lda.fit, dimen = 2, col = classes, pch =classes)
 lda.arrows(lda.fit, myscale = 1)
 ```
 
-It appears that high crime rates (in blue) have a different association with the Boston housing situation than the other crime rates.
+It appears that accessibility to radial highways (*rad*) is associated with a high crime rate (in blue) and this relationship is more prominent than those between other predictors and lower crime rates. Although the medium high crime rate (in green) is almost completely separated from the high crime rate, it is somewhat a more uniform class than the lower crime rates (in black and red) and has an association with environmental factors (*nox*).
 
-
-
-
-save crime categories from the test set:
 ```{r}
 # save correct classes from test data
 correct_classes <- test$crime
 # remove the crime variable from test data
 test <- dplyr::select(test, -crime)
 ```
+  
 
-*Prediction*
-predit the classes with LDA model on test data + crosstabulate with crime categories from the test set (= correct_classes):
+###Prediction
+  
+Now that the LDA model has been created, we can use the test set for predicting the classes in this new dataset and thus assess the model's perfomance. Here is a cross tabulation of the actual vs predicted values:
+
 ```{r predict LDA}
 # predict classes with test data
 lda.pred <- predict(lda.fit, newdata = test)
 
 # crosstabulate
-table(correct = correct_classes, predicted = lda.pred$class)
+table(correct = correct_classes, predicted = lda.pred$class) %>%
+  addmargins()
 ```
->> COMMENT ON RESULTS
 
-*K-means clustering*
-reload Boston + standardize
+Let us begin with the high crime rate: all predictions for this class are correct ones. Medium high crime rate is also most often predicted correctly. On the other hand, the predictions for low and medium low crime rates are not as accurate. These results confirm what we saw above in connection with the biplot.
+
+
+
+
+
+
+###K-means clustering
+
 ```{r reload data}
 # reload Boston dataset
 data("Boston")
@@ -253,36 +261,52 @@ data("Boston")
 boston_scaled2 <- scale(Boston)
 ```
 
-calculate distances between observations:
+Next, we want to create clusters (i.e. groups) of the observations. This can be done by adopting the **k-means** method which assigns the observations into *k* clusters based on similarity of the objects. Similarity can in turn be measured in terms of distances. The following analysis is based on the Euclidean measure. Below is a summary of those distances.
+
+
+
+
 ```{r distances}
-# Euclidean distance matrix
+# Euclidean distance matrix using set.seed()
+set.seed(123)
 dist <- dist(boston_scaled2)
 summary(dist)
 ```
 
-run k-means clustering [Euclidean]:
+Now we can run the k-means algorithm. Because I do not yet know how many cluster I should use, I will begin by setting them at 10 which should be a relatively safe bet.
+
 ```{r k-means}
 # k-means clustering / Euclidean
 km <- kmeans(dist, centers = 10)
 ```
 
-investigate optimal number of clusters & run k-means again:
+Fortunately, we do not need to rely on guessing as there are more sophisticated ways of finding the optimal number of clusters. Here, I will use total of *within cluster sum of squares* (WCSS) to do so.
+EXPLAIN WCSS
+
+Having calculated the total WCSS, we can plot them against the previously set number of clusters.
+
+INCLUDE set.seed
 ```{r optimal}
 # determine number of clusters
-k_max <- 5
+k_max <- 10
 
 # calculate WCSS
 twcss <- sapply(1:k_max, function(k){kmeans(dist, k)$tot.withinss})
 
 # optimalm number of clusters
 qplot(x = 1:k_max, y = twcss, geom = "line") # drops at 2
+```
 
+
+
+```{r}
 # run k-means again with optimal number of clusters
 km <- kmeans(dist, centers = 2)
 
 # visualize with optimal number of clusters
 pairs(boston_scaled2, col = km$cluster)
 ```
+
 INTERPRET RESULTS
 
   
