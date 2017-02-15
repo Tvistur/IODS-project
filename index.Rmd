@@ -33,10 +33,3 @@ Go to [top of diary](#home)
 Go to [top of diary](#home)
 
 ***
-
-```{r child = "chapter4.Rmd"}
-```
-
-Go to [top of diary](#home)
-
-***
