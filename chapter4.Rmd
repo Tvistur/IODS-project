@@ -59,14 +59,14 @@ crim | per capita crime rate by town
 zn | proportion of residential land zoned for lots over 25,000 sq.ft.
 indus | proportion of non-retail business acres per town
 chas | Charles River dummy variable (1 if tract bounds river; 0 otherwise)
-nox | nitric oxides concentration (parts per 10 million)
+nox | nitric oxides concentration
 rm | average number of rooms per dwelling
 age | proportion of owner-occupied units built prior to 1940
 dis | weighted distances to five Boston employment centres
 rad | index of accessibility to radial highways
 tax | full-value property-tax rate per $10,000
-ptratio | pupil-teacher ratio by town
-black | 1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town
+ptratio | pupil-teacher ratio
+black | proportion of blacks
 lstat | % lower status of the population
 medv | median value of owner-occupied homes in $1000's
 
@@ -106,7 +106,9 @@ As for positive correlations, there are many to choose from but one stands out f
   
 ### Standardization  
 
-The first step before attempting actual clustering is to standardize the dataset. This is because we need the variables to be comparable. Standardization is a simple operation in which the values of each variable are calculated using the following formula:  
+The first step before attempting actual classification is to standardize the dataset. This is because we need the variables both to be comparable and to fit assumptions on which the classification method is based on (variables are normally distributed and their variance is the same). 
+  
+Standardization is a simple operation in which the values of each variable are calculated using the following formula:  
 $scaled(x) = [x-mean(x)]/sd(x)$  
 i.e. the variable mean is substracted from the original value of the variable and this difference is the divided by the standard deviation of the variable.  
 
@@ -192,7 +194,9 @@ test <-  boston_scaled[-ind,]
   
 ###Linear discriminant analysis
 
-Now that the data has been prepared and divided, we can fit the linear discriminant analysis (LDA) on the previously created training set. LDA is a dimension reduction method meaning that it finds a linear combination of the explanatory variables which characterizes or separates the different classes of the target variable. In this current case, the newly created *crime* is the target variable and all other variables are the explanatory, or predictor, variables. Here is **biplot** representation of the LDA.
+Now that the data has been prepared and divided, we can fit the linear discriminant analysis (LDA) on the previously created training set. LDA is a classification method where the classes are known beforehand. In our case, they are the previously created four categories for different crime levels.
+
+LDA finds a linear combination of the explanatory variables which best characterizes or separates the different classes of the target variable. In this current case, the newly created *crime* is the target variable and all other variables are the explanatory, or predictor, variables. Here is **scatterplot** of the LDA where each class has been assigned it own colour. The length and direction of the arrows show the impact of each predictor variable in the model.
 
 ```{r LDA, include=FALSE}
 # fit LDA to train set
@@ -233,7 +237,7 @@ test <- dplyr::select(test, -crime)
 
 ###Prediction
   
-Now that the LDA model has been created, we can use the test set for predicting the classes in this new dataset and thus assess the model's perfomance. Here is a cross tabulation of the actual vs predicted values:
+Now that the LDA model has been created, we can use the test set for predicting the classes in this new dataset and thus assess the model's perfomance. Here is a cross tabulation of the actual vs predicted values.
 
 ```{r predict LDA}
 # predict classes with test data
@@ -245,11 +249,7 @@ table(correct = correct_classes, predicted = lda.pred$class) %>%
 ```
 
 Let us begin with the high crime rate: all predictions for this class are correct ones. Medium high crime rate is also most often predicted correctly. On the other hand, the predictions for low and medium low crime rates are not as accurate. These results confirm what we saw above in connection with the biplot.
-
-
-
-
-
+  
 
 ###K-means clustering
 
@@ -261,10 +261,7 @@ data("Boston")
 boston_scaled2 <- scale(Boston)
 ```
 
-Next, we want to create clusters (i.e. groups) of the observations. This can be done by adopting the **k-means** method which assigns the observations into *k* clusters based on similarity of the objects. Similarity can in turn be measured in terms of distances. The following analysis is based on the Euclidean measure. Below is a summary of those distances.
-
-
-
+Next, we want to create clusters (i.e. groups) of the observations. This can be done by adopting the **k-means** method which assigns the observations into *k* clusters based on the similarity of the objects. Similarity can in turn be measured in terms of distances. The following analysis is based on the Euclidean measure. Below is a summary of those distances.
 
 ```{r distances}
 # Euclidean distance matrix using set.seed()
@@ -275,17 +272,14 @@ summary(dist)
 
 Now we can run the k-means algorithm. Because I do not yet know how many cluster I should use, I will begin by setting them at 10 which should be a relatively safe bet.
 
+
 ```{r k-means}
 # k-means clustering / Euclidean
 km <- kmeans(dist, centers = 10)
 ```
 
-Fortunately, we do not need to rely on guessing as there are more sophisticated ways of finding the optimal number of clusters. Here, I will use total of *within cluster sum of squares* (WCSS) to do so.
-EXPLAIN WCSS
+Fortunately, we do not need to rely on guessing as there are more sophisticated ways of finding the optimal number of clusters. Here, I will use *total of within cluster sum of squares* (WCSS) to do so. WCSS calculates the number of clusters for which the observations are closest to the center of the cluster. The optimal number is the one where to value drops significantly. In the line graph below we can see that the drop occurs where the number of clusters is about two.
 
-Having calculated the total WCSS, we can plot them against the previously set number of clusters.
-
-INCLUDE set.seed
 ```{r optimal}
 # determine number of clusters
 k_max <- 10
@@ -297,7 +291,7 @@ twcss <- sapply(1:k_max, function(k){kmeans(dist, k)$tot.withinss})
 qplot(x = 1:k_max, y = twcss, geom = "line") # drops at 2
 ```
 
-
+I will now run the k-means algorithm again with the clusters set at two. The figure below is a similar to the representation of pairs we saw earlier, but here it isthe *scaled* variables that are plotted against each other. Also, instead of the original values, the patterns seen here represent the similarities (or differences), i.e.  distances, between the variables.
 
 ```{r}
 # run k-means again with optimal number of clusters
@@ -307,12 +301,21 @@ km <- kmeans(dist, centers = 2)
 pairs(boston_scaled2, col = km$cluster)
 ```
 
-INTERPRET RESULTS
+Disregarding the colours for a brief moment, the overall distribution patters appear nearly identical to those we saw earlier. However, now that clusters are included and shown in different colours, we can see how the patterns relate to the clusters. The differences between the clusters is not always clear, but for very main pairs they reveal certain uniqua, or even binary patterns. The differences are most clear for all instances of the target variable *crim* (crime rate) and *chas* (dummy variable), but also for *rad* (accessibility to radial highways) and *tax* (full-value property-tax rate). 
+  
 
+
+###Bonus 
+Perform k-means on the original Boston data with some reasonable number of clusters (> 2). Remember to standardize the dataset. 
+```{r bonus}
+data("Boston")
+```
+
+Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influencial linear separators for the clusters? (2 points to compensate any loss of points from previous exercises)
   
 #### 3D plot
 
-We were also given the code for producing a 3D plot.  I did not have time to study it in detail, but I absolutely had to see what what it looks like, so here it is!
+We were also given the code for producing a 3D plot.  I did not have time to study it in detail, but I absolutely had to see what what it looks like. So here it is!
 ```{r super-bonus, echo=FALSE}
 model_predictors <- dplyr::select(train, -crime)
 
@@ -332,4 +335,3 @@ check colours (should be the crime classes of the train set)
 # 3D plot of columns of the matrix product
 plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers', color = classes)
 ```
-
