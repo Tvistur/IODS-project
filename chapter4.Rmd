@@ -6,8 +6,6 @@ knitr::opts_chunk$set(include= TRUE,
   size = "small",   
   out.width = "70%",
   fig.align = "center",
-  fig.width = 10,
-  fig.height = 10,  
   fig.show = "hold", 
   fig.path = "../figures/document/",
   cache.path = "../cache/document/",
@@ -33,9 +31,6 @@ library(ggplot2)
 data("Boston")
 ```
 
-
-Clustering and classification are visual ways of exploring statistical data. 
-The aim of clustering is to find groups of data which are more similar (in some sense or another) to each other than to those in other groups.  
   
 #### Overview of the data
 
@@ -55,9 +50,9 @@ The variable names are not exactly self-explanatory. Because our analysis will a
 
 Variable | Description
 ---|------------------------------------------------
-crim | per capita crime rate by town
+crim | crime rate (per capita)
 zn | proportion of residential land zoned for lots over 25,000 sq.ft.
-indus | proportion of non-retail business acres per town
+indus | proportion of non-retail business acres
 chas | Charles River dummy variable (1 if tract bounds river; 0 otherwise)
 nox | nitric oxides concentration
 rm | average number of rooms per dwelling
@@ -74,7 +69,7 @@ Thus, the Boston dataset consists of a variety of information: demographic, econ
 
 So, let us next take a graphical tour of the data. In the figure below, each variable is plotted against the other variables.
 
-```{r pairs}
+```{r pairs, fig.width=10, fig.height=10}
 # plot matrix
 pairs(Boston, col = "royalblue")
 ```
@@ -110,7 +105,7 @@ The first step before attempting actual classification is to standardize the dat
   
 Standardization is a simple operation in which the values of each variable are calculated using the following formula:  
 $scaled(x) = [x-mean(x)]/sd(x)$  
-i.e. the variable mean is substracted from the original value of the variable and this difference is the divided by the standard deviation of the variable.  
+i.e. the variable mean is substracted from the original value of the variable and the resulting difference is then divided by the standard deviation of the variable.  
 
 ```{r scale, include=FALSE}
 # standardize variables
@@ -129,23 +124,23 @@ Now let us take a closer look at a selection of these scaled variables and compa
 summary(Boston$age)
 summary(boston_scaled$age)
 ```
-
-*tax*
+  
+*tax* (full value property tax rate)
 
 ```{r summary tax}
 summary(Boston$tax)
 summary(boston_scaled$tax)
 ```
-
-and *black*
+  
+and *black* (proportion of blacks in the area)
 
 ```{r summary black}
 summary(Boston$black)
 summary(boston_scaled$black)
 ```
-
-
-The standardization procedure has affected the variables considerably. To begin with, the range has been radically reduced: for *age* [2.9,100.0] -> [-2.333,1.116], for *tax* [187,711] -> [-1.313,1.796], and for *black* [0,397] -> [-3.90, 0.44]. What is most noteworthy, though, is the change in the mean values - in the scaled dataset, the mean value is 0.000 for all variables. The variables are not aligned and thus more easily comparable.   
+  
+The standardization procedure has affected the variables considerably. To begin with, the range has been radically reduced: for *age* [2.9,100.0] -> [-2.333,1.116], for *tax* [187,711] -> [-1.313,1.796], and for *black* [0,397] -> [-3.90, 0.44]. What is most noteworthy, though, is the change in the mean values - in the scaled dataset, the mean value is 0.000 for all variables. The variables are not aligned and thus more easily comparable.  
+  
 I will use this scaled dataset from this point onwards. There are still some minor adjustments to be made. In the analysis to come, I will use crime rate as the target variable, and in order to do so the continuous variable *crim* needs to be converted into a new, categorical variable *crime* (after which the original variable will be removed, because all the other variables will serve as the explanatory variables). The quantiles of the scaled variable *crim*
 
 ```{r summary of scaled crime rate}
@@ -161,7 +156,7 @@ bins
 crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, label = c("low", "med_low", "med_high", "high"))
 ```
   
-will serve as the breakpoints of the new categorical variables *crime* and the table below shows its distribution between the categories:
+will serve as the breakpoints for the new categorical variables *crime* - the table below shows its distribution between the newly ceated categories.
 
 ```{r summary of new variable}
 table(crime)
@@ -175,7 +170,7 @@ boston_scaled <- dplyr::select(boston_scaled, -crim)
 boston_scaled <- data.frame(boston_scaled, crime)
 ```
 
-Creating a model from your data is interesting by itself, but it falls short if there is nothing to test it on. Luckily, we can divide the dataset into training and test sets where the former is used for creating the model and the latter is used as "new" data for testing the model's prediction power. I will use 80% of my data for training and the remaining 20% for testing.
+Creating a model from your data is interesting by itself, but it falls short if there is nothing to test it on. Luckily, we can divide the dataset into training and test sets where the former is used for creating the model and the latter is used as new data for testing the model's prediction power. I will use 80% of my data for training and the remaining 20% for testing.
 
 ```{r divide into train and test sets}
 # create object n for number of rows in Boston dataset
@@ -194,9 +189,9 @@ test <-  boston_scaled[-ind,]
   
 ###Linear discriminant analysis
 
-Now that the data has been prepared and divided, we can fit the linear discriminant analysis (LDA) on the previously created training set. LDA is a classification method where the classes are known beforehand. In our case, they are the previously created four categories for different crime levels.
+Now that the data has been prepared and divided, we can fit the linear discriminant analysis (LDA) on the previously created training set. LDA is a classification method where the classes are known beforehand. In our case they are the previously created four categories denoting different crime levels.
 
-LDA finds a linear combination of the explanatory variables which best characterizes or separates the different classes of the target variable. In this current case, the newly created *crime* is the target variable and all other variables are the explanatory, or predictor, variables. Here is **scatterplot** of the LDA where each class has been assigned it own colour. The length and direction of the arrows show the impact of each predictor variable in the model.
+LDA finds a linear combination of the explanatory variables which best characterizes or separates the different classes of the target variable. In this current case, the categorical variable *crime* is the target variable and all other variables are the explanatory, or predictor, variables. Here is a **scatterplot** of the LDA where different colours represent the different classes. The length and direction of the arrows show the impact that each of the predictor variables has in the model.
 
 ```{r LDA, include=FALSE}
 # fit LDA to train set
@@ -220,7 +215,7 @@ classes <- as.numeric(train$crime)
 ```
 
 
-```{r LDA biplot}
+```{r LDA biplot, fig.width=10, fig.height=10}
 plot(lda.fit, dimen = 2, col = classes, pch =classes)
 lda.arrows(lda.fit, myscale = 1)
 ```
@@ -237,7 +232,7 @@ test <- dplyr::select(test, -crime)
 
 ###Prediction
   
-Now that the LDA model has been created, we can use the test set for predicting the classes in this new dataset and thus assess the model's perfomance. Here is a cross tabulation of the actual vs predicted values.
+Next, we can use the test set for predicting the classes in this new dataset and thus assess the model's perfomance. Here is a cross tabulation of the actual vs predicted values.
 
 ```{r predict LDA}
 # predict classes with test data
@@ -261,7 +256,7 @@ data("Boston")
 boston_scaled2 <- scale(Boston)
 ```
 
-Next, we want to create clusters (i.e. groups) of the observations. This can be done by adopting the **k-means** method which assigns the observations into *k* clusters based on the similarity of the objects. Similarity can in turn be measured in terms of distances. The following analysis is based on the Euclidean measure. Below is a summary of those distances.
+The aim is to create clusters (i.e. groups) of the observations. This can be done by adopting the **k-means** method which assigns the observations into *k* clusters based on the similarity of the objects. Similarity can in turn be measured in terms of distances. The following analysis is based on the Euclidean measure. Below is a summary of those distances.
 
 ```{r distances}
 # Euclidean distance matrix using set.seed()
@@ -271,7 +266,6 @@ summary(dist)
 ```
 
 Now we can run the k-means algorithm. Because I do not yet know how many cluster I should use, I will begin by setting them at 10 which should be a relatively safe bet.
-
 
 ```{r k-means}
 # k-means clustering / Euclidean
@@ -293,7 +287,7 @@ qplot(x = 1:k_max, y = twcss, geom = "line") # drops at 2
 
 I will now run the k-means algorithm again with the clusters set at two. The figure below is a similar to the representation of pairs we saw earlier, but here it isthe *scaled* variables that are plotted against each other. Also, instead of the original values, the patterns seen here represent the similarities (or differences), i.e.  distances, between the variables.
 
-```{r}
+```{r k-means with optimal, fig.width=10, fig.height=10}
 # run k-means again with optimal number of clusters
 km <- kmeans(dist, centers = 2)
 
@@ -301,22 +295,13 @@ km <- kmeans(dist, centers = 2)
 pairs(boston_scaled2, col = km$cluster)
 ```
 
-Disregarding the colours for a brief moment, the overall distribution patters appear nearly identical to those we saw earlier. However, now that clusters are included and shown in different colours, we can see how the patterns relate to the clusters. The differences between the clusters is not always clear, but for very main pairs they reveal certain uniqua, or even binary patterns. The differences are most clear for all instances of the target variable *crim* (crime rate) and *chas* (dummy variable), but also for *rad* (accessibility to radial highways) and *tax* (full-value property-tax rate). 
+Disregarding the colours for a brief moment, the overall distribution patters appear nearly identical to those we saw earlier. However, now that clusters are included and shown in different colours, we can see how the patterns relate to the clusters. The differences between the clusters is not always clear, but for very main pairs they reveal certain uniqua, or even binary patterns. The differences are most clear for all instances of the target variable *crim* (crime rate) and *chas* (dummy variable), but also for *rad* (accessibility to radial highways) and *tax* (full-value property-tax rate).  
   
-
-
-###Bonus 
-Perform k-means on the original Boston data with some reasonable number of clusters (> 2). Remember to standardize the dataset. 
-```{r bonus}
-data("Boston")
-```
-
-Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influencial linear separators for the clusters? (2 points to compensate any loss of points from previous exercises)
   
 #### 3D plot
 
 We were also given the code for producing a 3D plot.  I did not have time to study it in detail, but I absolutely had to see what what it looks like. So here it is!
-```{r super-bonus, echo=FALSE}
+```{r super-bonus, include=FALSE}
 model_predictors <- dplyr::select(train, -crime)
 
 # check the dimensions
@@ -330,7 +315,6 @@ matrix_product <- as.data.frame(matrix_product)
 library(plotly)
 ```
 
-check colours (should be the crime classes of the train set)
 ```{r 3D plot}
 # 3D plot of columns of the matrix product
 plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers', color = classes)
