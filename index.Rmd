@@ -11,25 +11,32 @@ output:
     fig_height: 4
     code_folding: hide
 ---
+<a id="home"></a>
 
 ***
 
 ```{r child = "chapter1.Rmd"}
 ```
-  
+
 ***
   
 ```{r child = "chapter2.Rmd"}
 ```
+
+Go to [top of diary](#home)
 
 ***
 
 ```{r child = "chapter3.Rmd"}
 ```
 
+Go to [top of diary](#home)
+
 ***
 
 ```{r child = "chapter4.Rmd"}
 ```
+
+Go to [top of diary](#home)
 
 ***

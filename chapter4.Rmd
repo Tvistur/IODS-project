@@ -120,7 +120,7 @@ boston_scaled <- as.data.frame(boston_scaled)
 
 Now let us take a closer look at a selection of these scaled variables and compare them to the original, non-scaled, dataset (original values are shown first and then the scaled values). Here are summaries of *age*
 
-```{r summary age}
+```{r summary Boston age}
 summary(Boston$age)
 summary(boston_scaled$age)
 ```
