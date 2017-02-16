@@ -19,17 +19,24 @@ output:
 ```
 
 ***
-  
+
+<a id="ch2"></a>
 ```{r child = "chapter2.Rmd"}
 ```
-
-Go to [top of diary](#home)
+Go to: [top of this section](#ch2) or [top of diary](#home)
 
 ***
 
+<a id="ch3"></a>
 ```{r child = "chapter3.Rmd"}
 ```
+Go to: [top of this section](#ch3) or [top of diary](#home)
 
-Go to [top of diary](#home)
+***
+
+<a id="ch4"></a>
+```{r child = "chapter4.Rmd"}
+```
+Go to: [top of this section](#ch4) or [top of diary](#home)
 
 ***
