@@ -272,7 +272,7 @@ Now we can run the k-means algorithm. Because I do not yet know how many cluster
 km <- kmeans(dist, centers = 10)
 ```
 
-Fortunately, we do not need to rely on guessing as there are more sophisticated ways of finding the optimal number of clusters. Here, I will use *total of within cluster sum of squares* (WCSS) to do so. WCSS calculates the number of clusters for which the observations are closest to the center of the cluster. The optimal number is the one where to value drops significantly. In the line graph below we can see that the drop occurs where the number of clusters is about two.
+Fortunately, we do not need to rely on guessing as there are more sophisticated ways of finding the optimal number of clusters. Here, I will use *total of within cluster sum of squares* (WCSS) to do so. WCSS calculates the number of clusters for which the observations are closest to the center of the cluster. The optimal number is the one where to value drops significantly. In the line graph below we can see that the drop occurs where the number of clusters is two.
 
 ```{r optimal}
 # determine number of clusters
@@ -300,7 +300,7 @@ Disregarding the colours for a brief moment, the overall distribution patters ap
   
 #### 3D plot
 
-We were also given the code for producing a 3D plot.  I did not have time to study it in detail, but I absolutely had to see what what it looks like. So here it is!
+The icing on the cake is the following 3D plot. Not only does it look really good, but you can move it around as well. It shows the same four classes as in the LDA plot seen earlier, and here too the high crime rate (in yellow) stands apart from the other crime levels.
 ```{r super-bonus, include=FALSE}
 model_predictors <- dplyr::select(train, -crime)
 
