@@ -46,10 +46,10 @@ colnames(gii)[9] <- "labF"
 colnames(gii)[10] <- "labM"
 
 # Add new variable to gii dataset: ratio of female and male populations with secondary education in each country
-gii <- mutate(gii, edu2F_edu2M = edu2F / edu2M)
+gii <- mutate(gii, edu2_FM = edu2F / edu2M)
 
 # Add new variable to gii dataset: ratio of labour force participation of females and males in each country 
-gii <- mutate(gii, labF_labM = labF / labM)
+gii <- mutate(gii, lab_FM = labF / labM)
 
 # Join the two dataset using the variable Country as the identifier. Keep only the countries in both datasets.
 library(dplyr)
@@ -57,3 +57,5 @@ hd_gii <- inner_join(hd, gii, by = "country")
 
 # Call the new joined data human and save it in data folder.
 write.csv(hd_gii, file = "human.csv", row.names = F)
+
+
