@@ -59,3 +59,49 @@ hd_gii <- inner_join(hd, gii, by = "country")
 write.csv(hd_gii, file = "human.csv", row.names = F)
 
 
+
+
+
+
+####################################
+# 18.2.2017
+# wrangling continued
+
+human_new <- read.csv("human.csv", sep = ",", header = TRUE)
+
+# Mutate the data: transform the Gross National Income (GNI) variable to numeric using string manipulation
+str(human_new$GNI)
+library(stringr)
+human_new$GNI <- str_replace(human_new$GNI, pattern = ",", replace = "") %>% as.numeric()
+
+# Keep only "Country", "Edu2.FM", "Labo.FM", "Edu.Exp", "Life.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F"
+## check column names in my data (renamed earlier)
+colnames(human_new)
+## select variables to keep
+keep <- c("country", "edu2_FM", "lab_FM", "edu_exp", "life_exp", "GNI", "mat_mort", "adol_birth", "parl_rep")
+## select the 'keep' columns
+human_new <- select(human_new, one_of(keep))
+
+# Remove all rows with missing values
+complete.cases(human_new)
+human_new <- filter(human_new, complete.cases(human_new))
+
+# Remove the observations which relate to regions instead of countries
+## check values in column
+list(human_new$country) # last 7 observations are regions
+## select rows up to 155 (which are countries)
+human_new <- human_new[1:155,]
+
+# Define the row names of the data by the country names 
+rownames(human_new) <- human_new$country
+# and remove the country name column from the data
+human_new <- select(human_new, -country)
+ 
+#The data should now have 155 observations and 9 variables??? 
+## It was instructed to keep 9 variables and the the country variable was removed - should be 8???
+
+
+# Save the human data in your data folder including the row names. 
+# You can overwrite your old ‘human’ data.
+
+write.csv(human_new, file = "human_new.csv", row.names = TRUE)
