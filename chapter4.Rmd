@@ -69,7 +69,7 @@ Thus, the Boston dataset consists of a variety of information: demographic, econ
 
 So, let us next take a graphical tour of the data. In the figure below, each variable is plotted against the other variables.
 
-```{r pairs, fig.width=10, fig.height=10}
+```{r pairs, fig.height=7}
 # plot matrix
 pairs(Boston, col = "royalblue")
 ```
