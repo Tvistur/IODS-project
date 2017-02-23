@@ -5,7 +5,7 @@ output:
   html_document:
     theme: cosmo
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     fig_caption: true
     fig_width: 6
     fig_height: 4
@@ -44,3 +44,10 @@ Go to: [top of this section](#ch4) or [top of diary](#home).
 
 ***
 
+<a id="ch5"></a>
+```{r child = "chapter5.Rmd"}
+```
+  
+Go to: [top of this section](#ch5) or [top of diary](#home).
+
+***

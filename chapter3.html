@@ -121,8 +121,8 @@ $(document).ready(function () {
 
 <div id="logistic-regression" class="section level1">
 <h1>Logistic regression</h1>
-<div id="overview-of-the-data" class="section level3">
-<h3>Overview of the data</h3>
+<div id="overview-of-the-data" class="section level2">
+<h2>Overview of the data</h2>
 <p>The dataset used in this chapter contains combined information about the alcohol consumption of students of both maths and Portugese. The original datasets are available at the <a href="https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION">UCI Machine Learning Repository</a>.</p>
 <p>The combined dataset consists of 35 variables and 382 observations.</p>
 <pre><code>## [1] 382  35</code></pre>
@@ -150,8 +150,8 @@ $(document).ready(function () {
 <li>“high_use” divides students into two groups based on whether or not their average alcohol consumption (“alc_use”) is high or low.</li>
 </ul>
 </div>
-<div id="selecting-variables" class="section level3">
-<h3>Selecting variables</h3>
+<div id="selecting-variables" class="section level2">
+<h2>Selecting variables</h2>
 <p>In order to explain what causes for the level of alcohol consumption (high/low), we need to consider the other variables and how they might be related to this issue.</p>
 <p>I expect that what we are dealing with is a group of young adults beginning to experiment with alcohol. I believe that in this age, especially in the younger end, the key factors behind alcohol use are peer pressure and amount of parental supervision. But it must also be kept in mind that the situation of a 15-year old student can be very different from that of a 22-year-old student. For this reason, we must factor in other related variables which may perhaps be the causes behind the level of alcohol consumption but correlate with it, such as academic behaviour. Time spent studying and grades do not appear as worthy factors, since they depend heavily on the student’s intelligence and to a lesser extent on their alcohol consumption. On the other hand, time spent partying and drinking <em>does</em> result in fatigue (to say the least) and could therefore be reflected in attendance.</p>
 <p>Based this reasoning, I have selected the following four variables:</p>
@@ -209,8 +209,8 @@ $(document).ready(function () {
 <pre><code>## [1] 0.223</code></pre>
 <p>The correlation value is 0.223, and the figure shows that absences are a little more frequent in the high consumption group. But the medians are almost identical, and girls have more outliers in both consumption groups. Any meaningful differences can again be seen looking at the boys: low consumption corresponds to very few absences, less than for girls, whereas high consumption corresponds to some absences more than for girls.</p>
 </div>
-<div id="logistic-regression-model" class="section level3">
-<h3>Logistic regression model</h3>
+<div id="logistic-regression-model" class="section level2">
+<h2>Logistic regression model</h2>
 <p>Now I have fitted a logistic regression model between the variables discussed in the previous section (explanatory variables) and the level of alcohol consumption which is, as we have seen, is a binary variable (high / low). Below is a summary of the fitted model.</p>
 <pre><code>## 
 ## Call:
@@ -239,8 +239,8 @@ $(document).ready(function () {
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
 <p>Looking at the summary, we can see that apart from age, the selected explanatory variables are significant. Time spent with friends and absences from school are the most significant ones with test scores very close to zero. Although age as itself does not score very high in this model, the model as a whole is significant at a 0.01 significance level.</p>
-<div id="odds-ratio-and-confidence-intervals" class="section level4">
-<h4>Odds ratio and confidence intervals</h4>
+<div id="odds-ratio-and-confidence-intervals" class="section level3">
+<h3>Odds ratio and confidence intervals</h3>
 <p>Let us next look at the odds ratio (OR) and confidence intervals (CI) of the fitted model.</p>
 <pre><code>##                 OR    2.5 % 97.5 %
 ## (Intercept) 0.0198 0.000496  0.726
@@ -250,8 +250,8 @@ $(document).ready(function () {
 ## absences    1.0747 1.030941  1.124</code></pre>
 <p>Time spent with friends (“goout”) is twice as likely (OD = 2.1345) to result in a high level of alcohol consumption, as opposed to a low level of consumption. This complies well with the model’s test results above. The odds ratios for absences and family relationships are also similar to the test results. Interestingly, age was not as significant a variable as the other variables, but here the odds ratio for age (1.1015) is actually higher than for absences (1.0747). However, the 95% confidence interval reveals that age is <em>not</em> statistically significant at the 0.05 level (because the interval contains 1.0), and the other variables are significant.</p>
 </div>
-<div id="prediction-and-penalty" class="section level4">
-<h4>Prediction and penalty</h4>
+<div id="prediction-and-penalty" class="section level3">
+<h3>Prediction and penalty</h3>
 <p>In order to explore the predictive power of my model to its full extent, I have modified it by including only those variables which were found to be statistically significant, i.e. I have dropped the age variable. The logistic regression equation is now:<br />
 <span class="math inline">\(y = -2.3882 + 0.7707(goout) - 0.3499(famrel) + 0.0745(absences)\)</span></p>
 <p>Based on this modified model, you will find below a 2x2 cross tabulation of the predictions versus actual values of the level of alcohol consumption (TRUE being ‘high’ and FALSE being ‘low’). The prediction threshold has been set to 0.5.</p>
@@ -265,14 +265,15 @@ $(document).ready(function () {
 <pre><code>## [1] 0.243</code></pre>
 <p>So, the lower the penalty the better (no model will ever be completely accurate). The value here (0.243) seems reasonably low and in any effect it is lower than the value attained from the model used in the DataCamp exercises (0.256).</p>
 </div>
-<div id="cross-validation" class="section level4">
-<h4>Cross-validation (*)</h4>
+</div>
+<div id="cross-validation" class="section level2">
+<h2>Cross-validation (*)</h2>
 <p>Continuing with the modified model, I will next perform a 10-fold cross-validation in order to test its actual predictive power.</p>
 <pre><code>## [1] 0.249</code></pre>
 <p>Compared to the model used in DataCamp, it appears that my model performs better (&lt; 0.262). Both models have three explanatory variables, but only they have only one in common: ‘absences’. The difference in performance can only be explained by differences in the models. The DataCamp model considers academic underachievement (‘failures’) and gender (‘sex’) whereas I decided not to include academic performance due its dependence on other factors (e.g. intelligence) and instead investigated the influence of peer pressure (‘goout’) and parental involvement (‘famrel’). It would appear that my line of reasoning has directed me in the right direction.</p>
 </div>
-<div id="exploring-performance" class="section level4">
-<h4>Exploring performance (**)</h4>
+<div id="exploring-performance" class="section level2">
+<h2>Exploring performance (**)</h2>
 <p>The question still remains: is my model, although modified, the best possible one. Since only four variables were originally chosen, there are still over 30 variables which have not been put to the test. In this section I will approach modeling from another perspective: by favouring statistical measures and iterations over personal reasoning.<br />
 <em>N.B. I will use K-fold cross-validation and display their results, but summaries will not be displayed for the sake of legibility.</em></p>
 <p>Let us begin with a wide variety of possibly releant variables.</p>
@@ -287,7 +288,6 @@ $(document).ready(function () {
 <p>I will remove yet another variable (‘address’) which, although it is significant at 0.05, is the least significant. Now we are left with four variables: ‘studytime’, ‘goout’, famrel’ and ‘absences’. Let us see what happens.</p>
 <pre><code>## [1] 0.238</code></pre>
 <p>As it turns out, the result is worse. Thus, the previous model was the best one. I am happy to note that it included all of the variables from my modified model (‘goout’, ‘famrel’, ‘absences’). On the other hand, my hypothesis about time spent studying not being a good measure was wrong, and I had not considered the effect of urban versus rural (‘address’) living at all which, of course, does determine one’s mobility and thus social environment.</p>
-</div>
 </div>
 </div>
 

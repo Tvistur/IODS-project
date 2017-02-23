@@ -33,7 +33,7 @@ learning2014 <- read.csv("/Users/susanhuotari/Documents/IODS K17/IODS-project/da
 ```
 
 
-### Overview of the data 
+## Overview of the data 
 
 The dataset used in this analysis was prepared beforehand. Originally, it consisted of 60 different variables and a total of 183 observations. Several subgroups of variables were interrelated and they were combined into single variables by calculating the mean value of each row for each subgroup. Then, observations where exam points were zero were excluded. 
 
@@ -93,7 +93,7 @@ The strongest positive correlation (0.437) can be found between attitude and poi
 Both deep learning and strategic learning have a positive correlation with age and surface learning have a negative one. As one gets older, one takes studying more seriously while being more selective in the process. Unfortunaley, and somewhat surprisingly, age has a slightly negative correlation with points.
 
 
-### Regression model
+## Regression model
 
 The next step is to try and fit a regression model, i.e. to try to explain the behaviour of the dependent variable (y) - in this case exam points. Explanatory variables were selected based on the findings in the previous section and the regression model can be stated as **points ~ attitude + stra + age**. Let us look at a summary of this model:
 
@@ -120,11 +120,11 @@ Although the *R-squared* values for a model with two explanatory variables will 
 Also, the *p* values of the *F test* (focuses on the entire model instead of individual variables) - in both cases the *p* value is extremely small. The critical levels of *F* with (3, 162) / (2, 163) degrees of freedom 3.78 / 4.61 at the 1 percent significance level, so *F statistics* of 15.1 / 21 indicate significant degrees of explanation in both models.
 
 
-### Diagnostics
+## Diagnostics
 
 In the previous section, a regression model was fitted and investigated as to how well it fitted the observations. The purpose of this section is to look at the model from the point-of-view of residuals which reveal the downfalls of the model. They turn our attention to what was left over after the model was fitted and could reveal patterns which affect the fitted model. Here, I have chosen to investigate the latter model: **points ~ attitude + stra**.
 
-#### Residuals vs Fitted values
+### Residuals vs Fitted values
 
 Let us begin by looking at residuals versus fitted values which will show if residuals have non-linear patterns, i.e. if the variance of residuals is not constant.
 
@@ -134,7 +134,7 @@ plot(model2, which = 1)
 
 The residuals are rather nicely spread around the horizontal line and there are no distinct patterns. There are some observations (35, 56, 145) which lie longer away from the line and would therefore be worth investigating closer, but other than those, there do not appear to be any major issues with the model.
 
-#### Normal QQ-plot
+### Normal QQ-plot
 
 Errors (residuals) in the regression model are assumed to be normally distributed, and the QQ-plot shows if this is the case for the fitted model.
 
@@ -145,7 +145,7 @@ plot(model2, which = 2)
 Again, the residuals do not fall exactly on the straight line, especially in the beginning and the end, In general the plot does not reveal any major concerns, although observations 35, 56 and 145 do stand out again.
 
 
-#### Residuals vs Leverage
+### Residuals vs Leverage
 
 Finally, let us take a look at the residuals versus leverage. The following plot shows if there are influential observations, i.e. how much impact single observations have on the model.
 

@@ -39,7 +39,7 @@ library(ggfortify)
 human <- read.csv("data/human_new.csv", header = TRUE, sep = ",", row.names = 1)
 ```
 
-### Overview of the data
+## Overview of the data
 
 ```{r reorder columns}
 human <- human[c("GNI", "life_exp", "edu_exp", "mat_mort", "adol_birth", "parl_rep", "edu2_FM", "lab_FM")]
@@ -113,7 +113,7 @@ grid.arrange(mat_life, mat_edu, ncol = 2)
 Both life expectancy and expected years of schooling are fairly high when the maternal mortality rate is very low, and their values drop fairly quickly as the maternal mortality ratio increases.
   
   
-### Principal component analysis
+## Principal component analysis
 
 It is time to perform principal component analysis (PCA) for which I will use the **Singular Value Decomposition (SVD)**. The idea behind PCA is to decompose, i.e. reduce, dimensions in order to find the underlying principal components.
   
@@ -166,7 +166,7 @@ We have two groups on the first principal component dimension which could be sum
 On the second dimension and independent of the previous issues, we have measures for gender equality (or inequality) represented by two fairly correlated features: proportion of female representatives in parliament (*parl_rep*) and the ratio of labour force participation of females and males (*lab_FM*). So, if a country has a high GNI it does not, however, say anything about how women are represented in its labour force. For example, countries on the Arabian peninsula (Qatar, Kuwait, Saudi Arabia etc.) are among the wealthiest in the world (per capita) but the labour force, not to mention governmental positions, is (nearly) completely dominated by men. 
   
   
-### Multiple Correspondence Analysis
+## Multiple Correspondence Analysis
 
 In this section I will use the *tea* data included in the FactoMineR package.
 ```{r load tea data}

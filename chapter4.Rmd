@@ -32,7 +32,7 @@ data("Boston")
 ```
 
   
-#### Overview of the data
+## Overview of the data
 
 This week I am using a built-in dataset, namely the Boston dataset which contains housing information in the Boston Mass area. The data has been collected by the U.S Census Service and it is also available [online](http://lib.stat.cmu.edu/datasets/boston).
 
@@ -99,7 +99,7 @@ Three pairs stand out as having a strong negative correlation: *indus/dis*, *nox
 As for positive correlations, there are many to choose from but one stands out from the rest: *rad/tax*. This was also identified above and it is the one with a compact round shape.
   
   
-### Standardization  
+## Standardization  
 
 The first step before attempting actual classification is to standardize the dataset. This is because we need the variables both to be comparable and to fit assumptions on which the classification method is based on (variables are normally distributed and their variance is the same). 
   
@@ -187,7 +187,7 @@ test <-  boston_scaled[-ind,]
 ```
 
   
-###Linear discriminant analysis
+## Linear discriminant analysis
 
 Now that the data has been prepared and divided, we can fit the linear discriminant analysis (LDA) on the previously created training set. LDA is a classification method where the classes are known beforehand. In our case they are the previously created four categories denoting different crime levels.
 
@@ -230,7 +230,7 @@ test <- dplyr::select(test, -crime)
 ```
   
 
-###Prediction
+## Prediction
   
 Next, we can use the test set for predicting the classes in this new dataset and thus assess the model's perfomance. Here is a cross tabulation of the actual vs predicted values.
 
@@ -246,7 +246,7 @@ table(correct = correct_classes, predicted = lda.pred$class) %>%
 Let us begin with the high crime rate: all predictions for this class are correct ones. Medium high crime rate is also most often predicted correctly. On the other hand, the predictions for low and medium low crime rates are not as accurate. These results confirm what we saw above in connection with the biplot.
   
 
-###K-means clustering
+## K-means clustering
 
 ```{r reload data}
 # reload Boston dataset
@@ -298,7 +298,7 @@ pairs(boston_scaled2, col = km$cluster)
 Disregarding the colours for a brief moment, the overall distribution patters appear nearly identical to those we saw earlier. However, now that clusters are included and shown in different colours, we can see how the patterns relate to the clusters. The differences between the clusters is not always clear, but for very main pairs they reveal certain uniqua, or even binary patterns. The differences are most clear for all instances of the target variable *crim* (crime rate) and *chas* (dummy variable), but also for *rad* (accessibility to radial highways) and *tax* (full-value property-tax rate).  
   
   
-#### 3D plot
+## 3D plot
 
 The icing on the cake is the following 3D plot. Not only does it look really good, but you can move it around as well. It shows the same four classes as in the LDA plot seen earlier, and here too the high crime rate (in yellow) stands apart from the other crime levels.
 ```{r super-bonus, include=FALSE}
