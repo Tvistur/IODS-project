@@ -45,7 +45,7 @@ human <- read.csv("data/human_new.csv", header = TRUE, sep = ",", row.names = 1)
 human <- human[c("GNI", "life_exp", "edu_exp", "mat_mort", "adol_birth", "parl_rep", "edu2_FM", "lab_FM")]
 ```
 
-This week's so called 'human' dataset originates from the [United Nations Developed Programme]( http://hdr.undp.org/en/content/human-development-index-hdi). The current dataset consists of Human Development Index (HDI) data and the Gender Inequality Index (GII) data for most countries around the world. HDI and GII were joined together by using country as the key. Two new variables were added and selected along a handful of other variables for the final dataset which consists of 8 variables and 155 observations. Here is an example of the first observations in the dataset.
+This week's so called 'human' data set originates from the [United Nations Developed Programme]( http://hdr.undp.org/en/content/human-development-index-hdi). The current data set consists of Human Development Index (HDI) data and the Gender Inequality Index (GII) data for most countries around the world. HDI and GII were joined together by using country as the key. Two new variables were added and selected along a handful of other variables for the final data set which consists of 8 variables and 155 observations. Here is an example of the first observations in the data set.
 
 ```{r overview ch5}
 head(human)
@@ -62,16 +62,17 @@ mat_mort | maternal mortality ratio
 adol_birth | adolescent birth rate
 parl_rep | % of female representatives in parliament
 edu2_FM | ratio of female and male populations with secondary education
-lab_FM | ratio of labour force participation of females and males
+lab_FM | ratio of labor force participation of females and males
 
-Below are summaries of these variables.
+Below are summaries of these variables. As the variables differ in terms of their unit of measure (money, years, ratios), the ranges are diverse. Variables measured in years (*life_exp* and *edu_exp*) have a fairly narrow range compared to the other variables, especially *GNI*.
 ```{r stats}
 summary(human)
 ```
 
 The following graph provides a visual overview of the data. It shows the distributions of each variable, as well as the relationships between different variables, including their correlation coefficients.
 ```{r overview pairs}
-ggpairs(human, mapping = aes(col = "royalblue", alpha = 0.3))
+ggpairs(human, mapping = aes(col = "royalblue", alpha = 0.3)) +
+  ggtitle("Variable pairs in 'human' data")
 ```
 
 Gross National Income *GNI* has a fairly strong positive correlation with *life_exp* (0.627) and *edu_exp* (0.624) which seem logical as the wealthier the country is the better standard of living people tend to have, i.e. they are likelier to live healthier and thus longer, and they have better education possibilities. Interestingly, *life_exp* and *edu_exp* have the strongest positive correlation (0.789). Close behind are the adolescent birth rate *adol_birth* and the maternal mortality ratio *mat_mort* (0.759).
@@ -93,12 +94,12 @@ adol_mat <- ggplot(human, aes(adol_birth, mat_mort)) +
   geom_jitter() +
   labs(x = "Adolescent birth rate", y = "Maternal mortality ratio")
 
-grid.arrange(GNI_life, GNI_edu, life_edu, adol_mat, ncol = 2)
+grid.arrange(GNI_life, GNI_edu, life_edu, adol_mat, ncol = 2, top = "Variable pairs with a strong positive correlation")
 ```
 
 There is a lot of variation in the lower end of GNI in both cases (top row). In the lower row pairs, the overall trend resembles a linear correlation, but there is a lot of variation in both.
   
-As for negative correlations, maternal mortality ratio *mat_mort* is a factor in the top-two pairs: with life expectancy at birth *life_exp* (-0.857) and expexted years of schooling *edu_exp* (-0.726).
+As for negative correlations, maternal mortality ratio *mat_mort* is a factor in the top-two pairs: with life expectancy at birth *life_exp* (-0.857) and expected years of schooling *edu_exp* (-0.726).
 
 ```{r negative corr,  fig.asp = 0.35}
 mat_life <- ggplot(human, aes(mat_mort, life_exp)) + 
@@ -107,7 +108,7 @@ mat_life <- ggplot(human, aes(mat_mort, life_exp)) +
 mat_edu <- ggplot(human, aes(mat_mort, edu_exp)) +
   geom_jitter() +
   labs(x = "Maternal mortality ratio", y = "Expected years of schooling")
-grid.arrange(mat_life, mat_edu, ncol = 2)
+grid.arrange(mat_life, mat_edu, ncol = 2, top = "Variable pairs with a strong negative correlation")
 ```
 
 Both life expectancy and expected years of schooling are fairly high when the maternal mortality rate is very low, and their values drop fairly quickly as the maternal mortality ratio increases.
@@ -117,7 +118,9 @@ Both life expectancy and expected years of schooling are fairly high when the ma
 
 It is time to perform principal component analysis (PCA) for which I will use the **Singular Value Decomposition (SVD)**. The idea behind PCA is to decompose, i.e. reduce, dimensions in order to find the underlying principal components.
   
-I will begin with the *original* dataset, and use the first two principal components to draw a biplot of the PCA. The amount of warnings visible below are the first clue that this is perhaps not the best approach possible.
+### Non-standardized data
+
+I will begin with the *original* data set, and use the first two principal components to draw a biplot of the PCA. The amount of warnings visible below are the first clue that this is perhaps not the best approach possible.
 
 ```{r PCA with SVD on original dataset}
 pca_human <- prcomp(human)
@@ -131,11 +134,15 @@ pca_pr <- round(100*s$importance[2, ], digits = 1)
 pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
 ```
 
+And this figure confirms that using a non-standardized data set is not a very good idea. The resulting figure is very uninformative and, more importantly, PC1 (100%) accounts only for wealth - *GNI* which has the highest variation.
 ```{r PCA biplot, warning=TRUE}
 biplot(pca_human, cex = c(0.5, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2], main = "Non-standardized data: wealth matters")
 ```
+  
+  
+### Standardized data
 
-Next, I will standardize the dataset and repeat the previous steps drawing a new biplot.
+Next, I will standardize the data set and repeat the previous steps drawing a new biplot.
 
 ```{r standardize human}
 human_std <- scale(human)
@@ -157,13 +164,13 @@ pc_lab_std <- paste0(names(pca_pr_std), " (", pca_pr_std, "%)")
 biplot(pca_human_std, cex = c(0.5, 1), col = c("grey40", "deeppink2"), xlab = pc_lab_std[1], ylab = pc_lab_std[2], main = "Wealth and health vs gender (in)equality in labour force")
 ```
 
-The results are very different dependin on whether a non-standardized or a standardized dataset was used. In the former case, all of the explanatory weight is on the first principal component (PC1 = 100%) and thus it highlights just one variable, *GNI*, as differing from the others. The *GNI* arrow is completely flat which indicates a very high positive correlation. As can be seen from the warnings above, the other variables have so little significanse that their arrows cannot even be drawn. This results in the pink mess in the biplot where the other variables are stacked on top of each other. So, this analysis is trying to indicate that *GNI* is the only feature which can be used to explain differences between countries. The *GNI* arrow is also very long meaning that the variable has a high standard deviation, which is true, but the problem is that the dataset has not been standardized. This original dataset contains variables operating on different scales (years, monetary, ratios). *GNI* is a monetary unit and it dominates because its variation is so much higher than that of the other variables.  
+The results are very different depending on whether a non-standardized or a standardized data set was used. In the former case, all of the explanatory weight is on the first principal component (PC1 = 100%) and thus it highlights just one variable, *GNI*, as differing from the others. The *GNI* arrow is completely flat which indicates a very high positive correlation. As can be seen from the warnings above, the other variables have so little significance that their arrows cannot even be drawn. This results in the pink mess in the biplot where the other variables are stacked on top of each other. So, this analysis is trying to indicate that *GNI* is the only feature which can be used to explain differences between countries. The *GNI* arrow is also very long meaning that the variable has a high standard deviation, which is true, but the problem is that the data set has not been standardized. This original data set contains variables operating on different scales (years, monetary, ratios). *GNI* is a monetary unit and it dominates because its variation is so much higher than that of the other variables.  
   
-In the second biplot, we see the results of the same analysis on the standardized dataset. The results are very different due to the standardization. The first principal component is still the most significant level (53.6%), but now the second component also has some weight to it (16.2%). Furthermore, three different patterns can be seen, and *GNI* is part of only one of them. It is very interesting that the variables grouped together are those that were identified earlier when correlations were discussed.  
+In the second biplot, we see the results of the same analysis on the standardized data set. The results are very different due to the standardization. The first principal component is still the most significant level (53.6%), but now the second component also has some weight to it (16.2%). Furthermore, three different patterns can be seen, and *GNI* is part of only one of them. It is very interesting that the variables grouped together are those that were identified earlier when correlations were discussed.  
   
 We have two groups on the first principal component dimension which could be summarized as wealth (both as income and as capital) and health, and mortality. In the first case Gross National Income per capita (*GNI*), life expectancy at birth (*life_exp*), expected years of education (*edu_exp*) and the ratio of female and male populations with secondary education (*edu2_FM*) are identified as having a strong correlation together. Opposed them is health in the point of view of mortality - adolescent birth rate (*adol_birth*) correlating with the maternal mortality ratio (*mat_mort*).   
   
-On the second dimension and independent of the previous issues, we have measures for gender equality (or inequality) represented by two fairly correlated features: proportion of female representatives in parliament (*parl_rep*) and the ratio of labour force participation of females and males (*lab_FM*). So, if a country has a high GNI it does not, however, say anything about how women are represented in its labour force. For example, countries on the Arabian peninsula (Qatar, Kuwait, Saudi Arabia etc.) are among the wealthiest in the world (per capita) but the labour force, not to mention governmental positions, is (nearly) completely dominated by men. 
+On the second dimension and independent of the previous issues, we have measures for gender equality (or inequality) represented by two fairly correlated features: proportion of female representatives in parliament (*parl_rep*) and the ratio of labor force participation of females and males (*lab_FM*). So, if a country has a high GNI it does not, however, say anything about how women are represented in its labor force. For example, countries on the Arabian peninsula (Qatar, Kuwait, Saudi Arabia etc.) are among the wealthiest in the world (per capita) but the labor force, not to mention governmental positions, is (nearly) completely dominated by men. 
   
   
 ## Multiple Correspondence Analysis
@@ -179,7 +186,7 @@ dim(tea)
 str(tea)
 ```
 
-The data has to do with answers to a questionnaire concerned with tea consumption charting how and when people drink tea, 
+The data has to do with answers to a questionnaire concerned with tea consumption charting how and where people drink tea, 
 
 ```{r visual tea how}
 tea_how <- tea[c("breakfast", "tea.time", "evening", "lunch", "dinner", "always", "home", "work", "tearoom", "friends", "resto", "pub","Tea", "How", "sugar", "how", "where", "price", "frequency")]
@@ -187,7 +194,8 @@ tea_how <- tea[c("breakfast", "tea.time", "evening", "lunch", "dinner", "always"
 gather(tea_how) %>% 
   ggplot(aes(value)) + 
   facet_wrap("key", scales = "free") + 
-  geom_bar(fill = "skyblue")
+  geom_bar(fill = "skyblue") +
+  ggtitle("Tea drinking habits")
 ```
 
 what their perceptions of tea are, 
@@ -198,7 +206,8 @@ tea_perception <- tea[c("escape.exoticism", "spirituality", "healthy", "diuretic
 gather(tea_perception) %>% 
   ggplot(aes(value)) + 
   facet_wrap("key", scales = "free") + 
-  geom_bar(fill = "skyblue")
+  geom_bar(fill = "skyblue") +
+  ggtitle("Perceptions of tea")
 ```
 
 and it also contains a few personal details (e.g. age, sex) of the respondents. 
@@ -209,10 +218,11 @@ tea_personal <- tea[c("age", "sex", "SPC", "Sport", "age_Q")]
 gather(tea_personal) %>% 
   ggplot(aes(value)) + 
   facet_wrap("key", scales = "free") + 
-  geom_bar(fill = "skyblue")
+  geom_bar(fill = "skyblue") +
+  ggtitle("Personal details of individuals")
 ```
 
-As we can see, visualizing this amount of variables is possible, but is perhaps not overtly informative. Next, I will proceed with the **Multiple Correspondence Analysis (MCA)** which is similar to the PCA done above in that it reduces dimensions and is thus able to identify underlying pattersn and structures in the data. Here, I am using the original dataset, but excluding age as it is not a categorical variable. Below is a summary of this analysis.
+As we can see, visualizing this amount of variables is possible, but is perhaps not overtly informative. Next, I will proceed with the **Multiple Correspondence Analysis (MCA)** which is similar to the PCA done above in that it reduces dimensions and is thus able to identify underlying patterns and structures in the data. Here, I am using the original data set, but excluding age as it is not a categorical variable. Below is a summary of this analysis.
 
 ```{r MCA not age}
 tea_notage <- tea %>% 
@@ -223,12 +233,12 @@ mca1 <- MCA(tea_notage, graph = FALSE)
 summary(mca1)
 ```
 
-The eigenvalue measures the variance retained in the dimension. There is a total of 54 dimensions and for each dimension its variance is smaller than in the previous dimension. As for the categorical variables list, all values in all three dimensions are generally low, i.e. no one variable has any significant connection with the dimension.  
+The eigenvalue measures the variance retained in the dimension. There is a total of 54 dimensions and, as can be expected with so many dimensions, each explains only a small share of variance. As for the categorical variables list, all values in all three dimensions are generally low, i.e. no one variable has any significant connection with the dimension.  
   
 Here is a biplot of the analysis. Since so many variables were included, the resulting plot is frankly a great big mess, and not at all helpful.
 
 ```{r MCA biplot 1}
-plot.MCA(mca1, invisible = c("ind"), habillage = "quali")
+plot.MCA(mca1, invisible = c("ind"), habillage = "quali", title = "MCA factor map (all variables)")
 ```
 
 I will now reduce the amount of variables and select those which I think could be the most important ones, according to my own experiences. So, the following analysis contains these variables: *Tea*, *How*, *how*, *where*, *sugar*, *price*, *relaxing* and *home*. Here is a summary of their MCA.
@@ -247,7 +257,7 @@ As we reduced the amount of variables, there are only 17 dimensions. The eigenva
 Now let us draw the biplot again using only the selected variables along with their values. It looks a lot more intelligible than the previous one.
 
 ```{r MCA biplot 2}
-plot(mca2, invisible = c("ind"), habillage = "quali")
+plot(mca2, invisible = c("ind"), habillage = "quali", title = "MCA factor map (selected variables)")
 ```
 
 So what can we say based on this graph? Well, for one thing it looks like drinking tea at home goes together with Earl Grey (or black tea) with milk, most likely bought from a chain store, and the type of tea changes to green tea once outside the home. So, tea consumption at home could be described as a low-key, ordinary activity in which unpackaged tea varieties sold at tea shops play are likely not to play part.  
